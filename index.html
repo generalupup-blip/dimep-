@@ -10,6 +10,11 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
           rel="stylesheet">
+    <!-- Firebase SDKs (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js">
+    </script>
     <!-- jsPDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
     </script>
@@ -1175,42 +1180,125 @@
 
     <script>
         (function() {
-            // ==================== ARMAZENAMENTO LOCAL (localStorage) ====================
-            const STORAGE_KEYS = {
-                USERS: 'dimep_users',
-                TESTS: 'dimep_tests',
-                LOGGED_USER: 'dimep_logged_user',
-                CURRENT_TEST: 'dimep_current_test'
+            // ==================== FIREBASE CONFIG ====================
+            const firebaseConfig = {
+                apiKey: "AIzaSyBrIz8S68NMrerGoo3kKNl3U9eqyOmBm-E",
+                authDomain: "dimepsistema.firebaseapp.com",
+                projectId: "dimepsistema",
+                storageBucket: "dimepsistema.firebasestorage.app",
+                messagingSenderId: "313339920663",
+                appId: "1:313339920663:web:f137b01c45c6d6c342b752"
             };
 
-            function loadFromStorage(key, defaultValue) {
-                try {
-                    const data = localStorage.getItem(key);
-                    return data ? JSON.parse(data) : defaultValue;
-                } catch (e) {
-                    return defaultValue;
-                }
-            }
-
-            function saveToStorage(key, value) {
-                try {
-                    localStorage.setItem(key, JSON.stringify(value));
-                } catch (e) {
-                    showToast('Erro ao salvar dados localmente. O armazenamento pode estar cheio.', 'error');
-                }
-            }
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
 
             // ==================== VARIÁVEIS GLOBAIS ====================
-            let allUsers = loadFromStorage(STORAGE_KEYS.USERS, []);
-            let allTests = loadFromStorage(STORAGE_KEYS.TESTS, []);
-            let loggedUser = loadFromStorage(STORAGE_KEYS.LOGGED_USER, null);
-            let currentTest = loadFromStorage(STORAGE_KEYS.CURRENT_TEST, null);
+            let allUsers = [];
+            let allTests = [];
+            let loggedUser = null;
+            let currentTest = null;
             let timerInterval = null;
             let testStartTime = null;
             let bipDebounceTimer = null;
 
-            // Garantir que o admin padrão exista
-            function ensureDefaultAdmin() {
+            // Local storage apenas para currentTest (estado volátil)
+            const CURRENT_TEST_KEY = 'dimep_current_test';
+
+            function loadCurrentTestFromLocal() {
+                try {
+                    const data = localStorage.getItem(CURRENT_TEST_KEY);
+                    return data ? JSON.parse(data) : null;
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            function saveCurrentTestToLocal(test) {
+                try {
+                    localStorage.setItem(CURRENT_TEST_KEY, JSON.stringify(test));
+                } catch (e) {
+                    showToast('Erro ao salvar estado do teste localmente.', 'error');
+                }
+            }
+
+            function clearCurrentTestLocal() {
+                localStorage.removeItem(CURRENT_TEST_KEY);
+            }
+
+            // Recupera teste em andamento (volátil) do localStorage
+            currentTest = loadCurrentTestFromLocal();
+            if (currentTest && currentTest.status !== 'in_progress') {
+                currentTest = null;
+                clearCurrentTestLocal();
+            }
+
+            // ==================== FUNÇÕES FIREBASE (Firestore) ====================
+
+            // Carrega todos os usuários do Firestore
+            async function loadAllUsersFromFirestore() {
+                try {
+                    const snapshot = await db.collection('users').get();
+                    allUsers = snapshot.docs.map(doc => doc.data());
+                } catch (error) {
+                    console.error('Erro ao carregar usuários:', error);
+                    showToast('Erro ao conectar com o banco de dados. Usando cache local, se disponível.', 'error');
+                }
+            }
+
+            // Salva um usuário no Firestore (documento com ID = username)
+            async function saveUserToFirestore(user) {
+                try {
+                    await db.collection('users').doc(user.username).set(user);
+                } catch (error) {
+                    console.error('Erro ao salvar usuário:', error);
+                    showToast('Erro ao salvar usuário no servidor.', 'error');
+                }
+            }
+
+            // Remove um usuário do Firestore
+            async function deleteUserFromFirestore(username) {
+                try {
+                    await db.collection('users').doc(username).delete();
+                } catch (error) {
+                    console.error('Erro ao remover usuário:', error);
+                    showToast('Erro ao remover usuário do servidor.', 'error');
+                }
+            }
+
+            // Carrega todos os testes do Firestore
+            async function loadAllTestsFromFirestore() {
+                try {
+                    const snapshot = await db.collection('tests').orderBy('dataFim', 'desc').get();
+                    allTests = snapshot.docs.map(doc => doc.data());
+                } catch (error) {
+                    console.error('Erro ao carregar testes:', error);
+                    showToast('Erro ao carregar histórico de testes.', 'error');
+                }
+            }
+
+            // Salva um teste no Firestore (documento com ID = test.id)
+            async function saveTestToFirestore(test) {
+                try {
+                    await db.collection('tests').doc(test.id).set(test);
+                } catch (error) {
+                    console.error('Erro ao salvar teste:', error);
+                    showToast('Erro ao salvar teste no servidor.', 'error');
+                }
+            }
+
+            // Remove um teste do Firestore
+            async function deleteTestFromFirestore(testId) {
+                try {
+                    await db.collection('tests').doc(testId).delete();
+                } catch (error) {
+                    console.error('Erro ao excluir teste:', error);
+                    showToast('Erro ao excluir teste do servidor.', 'error');
+                }
+            }
+
+            // Garantir que o admin padrão exista no Firestore
+            async function ensureDefaultAdmin() {
                 const adminExists = allUsers.some(u => u.username === 'Admin');
                 if (!adminExists) {
                     const defaultAdmin = {
@@ -1220,23 +1308,17 @@
                         role: 'admin'
                     };
                     allUsers.push(defaultAdmin);
-                    saveToStorage(STORAGE_KEYS.USERS, allUsers);
+                    await saveUserToFirestore(defaultAdmin);
                     showToast('Usuário administrador criado: Admin / 20362881', 'success');
                 } else {
                     // Verifica se a senha está correta
                     const admin = allUsers.find(u => u.username === 'Admin');
                     if (admin.password !== '20362881') {
                         admin.password = '20362881';
-                        saveToStorage(STORAGE_KEYS.USERS, allUsers);
+                        await saveUserToFirestore(admin);
                         showToast('Senha do administrador redefinida para 20362881', 'info');
                     }
                 }
-            }
-
-            // Se currentTest estiver com status diferente de in_progress, descarta
-            if (currentTest && currentTest.status !== 'in_progress') {
-                currentTest = null;
-                saveToStorage(STORAGE_KEYS.CURRENT_TEST, null);
             }
 
             // ==================== FUNÇÕES AUXILIARES ====================
@@ -1260,22 +1342,6 @@
 
             function formatTimerDisplay(seconds) {
                 return `${String(Math.floor(seconds / 3600)).padStart(2, '0')}:${String(Math.floor((seconds % 3600) / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-            }
-
-            function persistAllTests() {
-                saveToStorage(STORAGE_KEYS.TESTS, allTests);
-            }
-
-            function persistAllUsers() {
-                saveToStorage(STORAGE_KEYS.USERS, allUsers);
-            }
-
-            function persistLoggedUser() {
-                saveToStorage(STORAGE_KEYS.LOGGED_USER, loggedUser);
-            }
-
-            function persistCurrentTest() {
-                saveToStorage(STORAGE_KEYS.CURRENT_TEST, currentTest);
             }
 
             // ==================== LOGIN ====================
@@ -1311,6 +1377,7 @@
             function logout() {
                 setLoggedUser(null);
                 setCurrentTest(null);
+                clearCurrentTestLocal();
                 document.getElementById('app-screen').classList.remove('active');
                 document.getElementById('login-screen').style.display = 'flex';
                 document.getElementById('login-username').value = '';
@@ -1338,12 +1405,16 @@
 
             function setLoggedUser(user) {
                 loggedUser = user;
-                persistLoggedUser();
+                // Não persistimos mais em localStorage; a sessão fica apenas em memória.
             }
 
             function setCurrentTest(test) {
                 currentTest = test;
-                persistCurrentTest();
+                if (test) {
+                    saveCurrentTestToLocal(test);
+                } else {
+                    clearCurrentTestLocal();
+                }
             }
 
             function getCurrentTest() { return currentTest; }
@@ -1411,13 +1482,13 @@
                 }
             }
 
-            function deleteTest(testId) {
+            async function deleteTest(testId) {
                 const user = getLoggedUser();
                 if (!user || user.role !== 'admin') { showToast('Apenas administradores podem excluir testes.',
                     'error'); return; }
                 if (!confirm('⚠️ Tem certeza que deseja EXCLUIR permanentemente este teste?')) return;
                 allTests = allTests.filter(t => t.id !== testId);
-                persistAllTests();
+                await deleteTestFromFirestore(testId);
                 updateDashboard();
                 applyHistoryFilters();
                 showToast('Teste excluído com sucesso!', 'info');
@@ -1627,7 +1698,7 @@
             function closeFinalizeModal() { document.getElementById('modal-finalize-overlay').classList.remove(
                 'active'); }
 
-            function finalizeAndSaveTest() {
+            async function finalizeAndSaveTest() {
                 const ct = getCurrentTest();
                 if (!ct) return;
                 const paleteId = document.getElementById('final-palete').value.trim();
@@ -1649,8 +1720,9 @@
                 ct.assinatura = assinatura;
                 ct.totalSeconds = Math.floor((Date.now() - testStartTime) / 1000);
                 allTests.unshift(ct);
-                persistAllTests();
+                await saveTestToFirestore(ct);
                 setCurrentTest(null);
+                clearCurrentTestLocal();
                 stopTimer();
                 clearBipDebounce();
                 closeFinalizeModal();
@@ -1925,7 +1997,7 @@
 
             function closeAddUserModal() { document.getElementById('modal-add-user-overlay').classList.remove('active'); }
 
-            function addUser() {
+            async function addUser() {
                 const username = document.getElementById('add-user-username').value.trim();
                 const fullName = document.getElementById('add-user-fullname').value.trim();
                 const password = document.getElementById('add-user-password').value;
@@ -1936,24 +2008,30 @@
                     'error'); return; }
                 const newUser = { username, password, fullName, role };
                 allUsers.push(newUser);
-                persistAllUsers();
+                await saveUserToFirestore(newUser);
                 closeAddUserModal();
                 updateUsersTable();
                 showToast(`Usuário "${fullName}" cadastrado!`, 'success');
             }
 
-            function deleteUser(username) {
+            async function deleteUser(username) {
                 if (username === 'Admin') { showToast('Não é possível remover o administrador padrão.', 'error'); return; }
                 if (!confirm(`Remover usuário "${username}"?`)) return;
                 allUsers = allUsers.filter(u => u.username !== username);
-                persistAllUsers();
+                await deleteUserFromFirestore(username);
                 updateUsersTable();
                 showToast(`Usuário "${username}" removido.`, 'info');
             }
 
-            // ==================== INICIALIZAÇÃO ====================
-            function init() {
-                ensureDefaultAdmin();
+            // ==================== INICIALIZAÇÃO ASSÍNCRONA ====================
+            async function init() {
+                // Carrega dados do Firestore
+                await loadAllUsersFromFirestore();
+                await loadAllTestsFromFirestore();
+
+                // Garante admin padrão
+                await ensureDefaultAdmin();
+
                 if (loggedUser) {
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('app-screen').classList.add('active');
@@ -1969,7 +2047,7 @@
                 }
             }
 
-            // Expor funções globalmente para que os eventos onclick no HTML funcionem
+            // Expor funções globalmente
             window.handleLogin = handleLogin;
             window.logout = logout;
             window.switchUser = switchUser;
