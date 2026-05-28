@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIMEP SISTEMAS - Controle de Qualidade (Firebase)</title>
+    <title>DIMEP SISTEMAS - Controle de Qualidade (Firebase + Auth)</title>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -14,8 +14,10 @@
     <!-- Firebase SDKs (compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
     <style>
+        /* ========== ESTILOS COMPLETOS (MANTIDOS IGUAIS) ========== */
         :root {
             --primary: #0d1b2a;
             --primary-light: #1b3a5c;
@@ -42,1109 +44,175 @@
             --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             --sidebar-width: 260px;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ========== LOGIN SCREEN ========== */
-        #login-screen {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #0d1b2a 0%, #1b3a5c 40%, #0d1b2a 100%);
-            position: relative;
-            overflow: hidden;
-        }
-        #login-screen::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(ellipse at center, rgba(201, 168, 76, 0.08) 0%, transparent 70%);
-            animation: pulse-bg 8s ease-in-out infinite;
-        }
-        @keyframes pulse-bg {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-        }
-        .login-container {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 440px;
-            padding: 20px;
-        }
-        .login-card {
-            background: #ffffff;
-            border-radius: 20px;
-            padding: 48px 40px;
-            box-shadow: var(--shadow-xl);
-            text-align: center;
-        }
-        .login-logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #0d1b2a, #1b3a5c);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 32px;
-            color: var(--accent);
-            box-shadow: 0 8px 24px rgba(13, 27, 42, 0.3);
-        }
-        .login-logo i {
-            font-size: 36px;
-        }
-        .login-card h1 {
-            font-size: 26px;
-            font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 4px;
-            letter-spacing: -0.5px;
-        }
-        .login-card .subtitle {
-            font-size: 13px;
-            color: var(--text-light);
-            margin-bottom: 32px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            font-weight: 500;
-        }
-        .login-card .form-group {
-            margin-bottom: 18px;
-            text-align: left;
-        }
-        .login-card label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-light);
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .login-card input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 15px;
-            font-family: 'Inter', sans-serif;
-            transition: var(--transition);
-            background: #f8fafc;
-            color: var(--text);
-        }
-        .login-card input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.1);
-            background: #fff;
-        }
-        .login-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #0d1b2a, #1b3a5c);
-            color: #fff;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            letter-spacing: 0.5px;
-            transition: var(--transition);
-            margin-top: 8px;
-            font-family: 'Inter', sans-serif;
-            position: relative;
-            overflow: hidden;
-        }
-        .login-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(13, 27, 42, 0.35);
-        }
-        .login-btn:active {
-            transform: translateY(0);
-        }
-        .login-error {
-            color: var(--danger);
-            font-size: 13px;
-            margin-top: 8px;
-            min-height: 20px;
-            font-weight: 500;
-        }
-        .login-footer {
-            margin-top: 24px;
-            font-size: 11px;
-            color: var(--text-light);
-            letter-spacing: 0.5px;
-        }
-
-        /* ========== APP SCREEN ========== */
-        #app-screen {
-            display: none;
-            min-height: 100vh;
-        }
-        #app-screen.active {
-            display: flex;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: var(--sidebar-width);
-            background: #0d1b2a;
-            color: #fff;
-            min-height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
-        }
-        .sidebar-header {
-            padding: 24px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .sidebar-logo {
-            width: 42px;
-            height: 42px;
-            background: var(--accent);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: #0d1b2a;
-            flex-shrink: 0;
-        }
-        .sidebar-brand {
-            font-weight: 700;
-            font-size: 15px;
-            letter-spacing: -0.3px;
-            line-height: 1.2;
-        }
-        .sidebar-brand small {
-            display: block;
-            font-weight: 400;
-            font-size: 10px;
-            letter-spacing: 1.5px;
-            color: rgba(255, 255, 255, 0.5);
-            text-transform: uppercase;
-        }
-        .sidebar-nav {
-            flex: 1;
-            padding: 16px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            color: rgba(255, 255, 255, 0.7);
-            text-decoration: none;
-            border-radius: var(--radius-sm);
-            transition: var(--transition);
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            position: relative;
-        }
-        .sidebar-nav a:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-        }
-        .sidebar-nav a.active {
-            background: rgba(201, 168, 76, 0.15);
-            color: var(--accent);
-            font-weight: 600;
-        }
-        .sidebar-nav a.active::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 8px;
-            bottom: 8px;
-            width: 3px;
-            background: var(--accent);
-            border-radius: 0 3px 3px 0;
-        }
-        .sidebar-nav a i {
-            width: 20px;
-            text-align: center;
-            font-size: 16px;
-        }
-        .sidebar-footer {
-            padding: 12px 16px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .sidebar-footer .user-avatar {
-            width: 36px;
-            height: 36px;
-            background: var(--accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            color: #0d1b2a;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-        .sidebar-footer .user-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .sidebar-footer .user-name {
-            font-size: 13px;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .sidebar-footer .user-role {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.5);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .sidebar-footer .action-btn {
-            background: none;
-            border: none;
-            color: rgba(255, 255, 255, 0.5);
-            cursor: pointer;
-            font-size: 16px;
-            padding: 6px;
-            border-radius: 50%;
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-        }
-        .sidebar-footer .action-btn:hover {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.1);
-        }
-        .sidebar-footer .switch-btn:hover {
-            color: var(--accent);
-            background: rgba(201, 168, 76, 0.15);
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 28px 32px;
-            min-height: 100vh;
-            background: var(--bg);
-        }
-        .page-header {
-            margin-bottom: 28px;
-        }
-        .page-header h2 {
-            font-size: 26px;
-            font-weight: 700;
-            color: var(--primary);
-            letter-spacing: -0.5px;
-        }
-        .page-header .breadcrumb {
-            font-size: 12px;
-            color: var(--text-light);
-            margin-top: 4px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        .view {
-            display: none;
-        }
-        .view.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Cards */
-        .card {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 24px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-            transition: var(--transition);
-        }
-        .card:hover {
-            box-shadow: var(--shadow-lg);
-        }
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .card-header h3 {
-            font-size: 17px;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-        .stat-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            padding: 20px 24px;
-            box-shadow: var(--shadow);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            transition: var(--transition);
-        }
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
-        }
-        .stat-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            flex-shrink: 0;
-        }
-        .stat-icon.blue {
-            background: #eff6ff;
-            color: #3b82f6;
-        }
-        .stat-icon.green {
-            background: #ecfdf5;
-            color: #10b981;
-        }
-        .stat-icon.amber {
-            background: #fffbeb;
-            color: #f59e0b;
-        }
-        .stat-icon.red {
-            background: #fef2f2;
-            color: #ef4444;
-        }
-        .stat-icon.slate {
-            background: #e2e8f0;
-            color: #1e293b;
-        }
-        .stat-info .stat-value {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--primary);
-            letter-spacing: -1px;
-        }
-        .stat-info .stat-label {
-            font-size: 12px;
-            color: var(--text-light);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 500;
-        }
-
-        /* Buttons */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border-radius: var(--radius-xs);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: var(--transition);
-            font-family: 'Inter', sans-serif;
-            letter-spacing: 0.3px;
-            white-space: nowrap;
-        }
-        .btn-primary {
-            background: var(--primary-light);
-            color: #fff;
-        }
-        .btn-primary:hover {
-            background: #0d1b2a;
-            box-shadow: 0 4px 12px rgba(27, 58, 92, 0.3);
-            transform: translateY(-1px);
-        }
-        .btn-success {
-            background: var(--success);
-            color: #fff;
-        }
-        .btn-success:hover {
-            background: #059669;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-            transform: translateY(-1px);
-        }
-        .btn-danger {
-            background: #fff;
-            color: var(--danger);
-            border: 2px solid #fecaca;
-        }
-        .btn-danger:hover {
-            background: #fef2f2;
-            border-color: #ef4444;
-        }
-        .btn-warning {
-            background: var(--warning);
-            color: #000;
-        }
-        .btn-warning:hover {
-            background: #d97706;
-            color: #fff;
-        }
-        .btn-outline {
-            background: #fff;
-            color: var(--primary-light);
-            border: 2px solid var(--border);
-        }
-        .btn-outline:hover {
-            border-color: var(--primary-light);
-            background: #f8fafc;
-        }
-        .btn-lg {
-            padding: 16px 32px;
-            font-size: 18px;
-            border-radius: var(--radius-sm);
-            font-weight: 700;
-        }
-        .btn-xl {
-            padding: 20px 40px;
-            font-size: 22px;
-            border-radius: 16px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-        }
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-        .btn-icon {
-            width: 38px;
-            height: 38px;
-            padding: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-        }
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 12px;
-            gap: 4px;
-        }
-
-        /* Filter area */
-        .filter-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: flex-end;
-            margin-bottom: 16px;
-        }
-        .filter-bar .form-group {
-            flex: 1 1 180px;
-            min-width: 150px;
-        }
-        .filter-bar .form-group label {
-            display: block;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-light);
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .filter-bar .form-group input,
-        .filter-bar .form-group select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-xs);
-            font-size: 13px;
-            font-family: 'Inter', sans-serif;
-            transition: var(--transition);
-            background: #fafbfc;
-        }
-        .filter-bar .form-group input:focus,
-        .filter-bar .form-group select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1);
-            background: #fff;
-        }
-        .filter-bar .filter-actions {
-            display: flex;
-            gap: 8px;
-            align-items: flex-end;
-            flex-shrink: 0;
-        }
-
-        /* Table */
-        .table-container {
-            overflow-x: auto;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        table th,
-        table td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-        table th {
-            background: #f8fafc;
-            font-weight: 700;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-light);
-        }
-        table tbody tr {
-            transition: var(--transition);
-        }
-        table tbody tr:hover {
-            background: #f8fafc;
-        }
-        .badge {
-            display: inline-block;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-        }
-        .badge-success {
-            background: #d1fae5;
-            color: #065f46;
-        }
-        .badge-danger {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        .badge-warning {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        .badge-info {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-        .badge-rigoroso {
-            background: #1e293b;
-            color: #f1f5f9;
-        }
-
-        /* ========== TEST VIEW ========== */
-        .bip-area {
-            text-align: center;
-            padding: 40px 20px;
-            background: linear-gradient(135deg, #f8fafc 0%, #fff 100%);
-            border-radius: var(--radius);
-            border: 2px dashed var(--border);
-            margin-bottom: 20px;
-            transition: var(--transition);
-            position: relative;
-        }
-        .bip-area.flash {
-            border-color: var(--success);
-            background: #f0fdf4;
-            animation: flashGreen 0.5s ease;
-        }
-        @keyframes flashGreen {
-            0%,
-            100% {
-                background: #f0fdf4;
-            }
-            50% {
-                background: #bbf7d0;
-            }
-        }
-        .bip-counter {
-            font-size: 120px;
-            font-weight: 900;
-            color: var(--primary);
-            line-height: 1;
-            letter-spacing: -4px;
-            transition: var(--transition);
-        }
-        .bip-counter.pulse {
-            animation: pulseNum 0.3s ease;
-        }
-        @keyframes pulseNum {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.15);
-                color: var(--success);
-            }
-        }
-        .bip-label {
-            font-size: 18px;
-            color: var(--text-light);
-            font-weight: 500;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-        .bip-input-area {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-top: 16px;
-        }
-        .bip-input-area input {
-            width: 300px;
-            padding: 14px 18px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 16px;
-            font-family: 'Inter', sans-serif;
-            text-align: center;
-            font-weight: 600;
-            letter-spacing: 1px;
-            transition: var(--transition);
-        }
-        .bip-input-area input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.1);
-        }
-        .timer-display {
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--primary-light);
-            letter-spacing: -1px;
-            margin-bottom: 8px;
-            font-variant-numeric: tabular-nums;
-            font-family: 'Inter', monospace;
-        }
-        .timer-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-light);
-        }
-
-        /* Amostragem grid */
-        .amostras-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            max-height: 350px;
-            overflow-y: auto;
-            padding: 8px 0;
-            align-items: flex-start;
-        }
-        .amostra-item {
-            width: 85px;
-            min-height: 70px;
-            border-radius: var(--radius-xs);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 12px;
-            cursor: pointer;
-            transition: var(--transition);
-            border: 2px solid transparent;
-            position: relative;
-            flex-shrink: 0;
-            padding: 6px 4px;
-            text-align: center;
-            gap: 2px;
-            user-select: none;
-        }
-        .amostra-item.readonly {
-            cursor: default;
-            pointer-events: none;
-        }
-        .amostra-item.readonly:hover {
-            transform: none !important;
-            box-shadow: none !important;
-        }
-        .amostra-item .amostra-num {
-            font-size: 13px;
-            font-weight: 800;
-            letter-spacing: -0.3px;
-        }
-        .amostra-item .amostra-codigo {
-            font-size: 10px;
-            font-weight: 600;
-            word-break: break-all;
-            line-height: 1.2;
-            max-width: 100%;
-            color: inherit;
-            opacity: 0.9;
-        }
-        .amostra-item .edit-icon {
-            position: absolute;
-            top: 4px;
-            right: 4px;
-            font-size: 10px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            color: rgba(0, 0, 0, 0.4);
-            pointer-events: none;
-        }
-        .amostra-item:hover .edit-icon {
-            opacity: 1;
-        }
-        .amostra-item .status-icon {
-            position: absolute;
-            top: -6px;
-            left: -6px;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: 2px solid #fff;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 9px;
-            color: #fff;
-        }
-        .amostra-item.normal {
-            background: #ecfdf5;
-            color: #065f46;
-            border-color: #a7f3d0;
-        }
-        .amostra-item.normal:hover {
-            background: #d1fae5;
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-        }
-        .amostra-item.rigoroso {
-            background: #1e293b;
-            color: #f1f5f9;
-            border-color: #475569;
-        }
-        .amostra-item.rigoroso:hover {
-            background: #0f172a;
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-        }
-        .amostra-item.rigoroso .status-icon {
-            background: #c9a84c;
-        }
-        .amostra-item.problem {
-            background: #fef2f2;
-            color: #991b1b;
-            border-color: #fecaca;
-            animation: shake 0.5s ease;
-        }
-        .amostra-item.problem:hover {
-            background: #fee2e2;
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-        }
-        .amostra-item.problem .status-icon {
-            background: #ef4444;
-        }
-        @keyframes shake {
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-            25% {
-                transform: translateX(-4px);
-            }
-            75% {
-                transform: translateX(4px);
-            }
-        }
-
-        /* ========== MODAL ========== */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            z-index: 200;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(2px);
-        }
-        .modal-overlay.active {
-            display: flex;
-            animation: fadeIn 0.2s ease;
-        }
-        .modal {
-            background: #fff;
-            border-radius: 20px;
-            padding: 32px;
-            width: 90%;
-            max-width: 700px;
-            max-height: 85vh;
-            overflow-y: auto;
-            box-shadow: var(--shadow-xl);
-            position: relative;
-        }
-        .modal h3 {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: var(--primary);
-            letter-spacing: -0.5px;
-        }
-        .modal .close-btn {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: none;
-            border: none;
-            font-size: 22px;
-            cursor: pointer;
-            color: var(--text-light);
-            transition: var(--transition);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal .close-btn:hover {
-            background: #f1f5f9;
-            color: var(--danger);
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-        .form-row.full {
-            grid-template-columns: 1fr;
-        }
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-light);
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px 14px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-xs);
-            font-size: 14px;
-            font-family: 'Inter', sans-serif;
-            transition: var(--transition);
-            background: #fafbfc;
-        }
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1);
-            background: #fff;
-        }
-        .signature-canvas-container {
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-            background: #fafbfc;
-            cursor: crosshair;
-            touch-action: none;
-        }
-        .signature-canvas-container canvas {
-            display: block;
-            width: 100%;
-            height: 150px;
-        }
-        .signature-actions {
-            display: flex;
-            gap: 8px;
-            margin-top: 8px;
-            justify-content: flex-end;
-        }
-
-        /* Toast */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .toast {
-            padding: 14px 20px;
-            border-radius: var(--radius-sm);
-            color: #fff;
-            font-weight: 600;
-            font-size: 14px;
-            box-shadow: var(--shadow-lg);
-            animation: slideIn 0.3s ease, fadeOut 0.3s ease 3s forwards;
-            max-width: 400px;
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        @keyframes fadeOut {
-            to {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-        }
-        .toast-success {
-            background: #10b981;
-        }
-        .toast-error {
-            background: #ef4444;
-        }
-        .toast-info {
-            background: #3b82f6;
-        }
-
-        /* Result count */
-        .result-count {
-            font-size: 13px;
-            color: var(--text-light);
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        .result-count strong {
-            color: var(--primary);
-        }
-
-        /* Responsive */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+        #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #0d1b2a 0%, #1b3a5c 40%, #0d1b2a 100%); position: relative; overflow: hidden; }
+        #login-screen::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at center, rgba(201, 168, 76, 0.08) 0%, transparent 70%); animation: pulse-bg 8s ease-in-out infinite; }
+        @keyframes pulse-bg { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .login-container { position: relative; z-index: 1; width: 100%; max-width: 440px; padding: 20px; }
+        .login-card { background: #ffffff; border-radius: 20px; padding: 48px 40px; box-shadow: var(--shadow-xl); text-align: center; }
+        .login-logo { width: 80px; height: 80px; background: linear-gradient(135deg, #0d1b2a, #1b3a5c); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 32px; color: var(--accent); box-shadow: 0 8px 24px rgba(13, 27, 42, 0.3); }
+        .login-logo i { font-size: 36px; }
+        .login-card h1 { font-size: 26px; font-weight: 800; color: var(--primary); margin-bottom: 4px; letter-spacing: -0.5px; }
+        .login-card .subtitle { font-size: 13px; color: var(--text-light); margin-bottom: 32px; letter-spacing: 2px; text-transform: uppercase; font-weight: 500; }
+        .login-card .form-group { margin-bottom: 18px; text-align: left; }
+        .login-card label { display: block; font-size: 12px; font-weight: 600; color: var(--text-light); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .login-card input { width: 100%; padding: 14px 16px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; font-family: 'Inter', sans-serif; transition: var(--transition); background: #f8fafc; color: var(--text); }
+        .login-card input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.1); background: #fff; }
+        .login-btn { width: 100%; padding: 15px; background: linear-gradient(135deg, #0d1b2a, #1b3a5c); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 16px; font-weight: 600; cursor: pointer; letter-spacing: 0.5px; transition: var(--transition); margin-top: 8px; font-family: 'Inter', sans-serif; position: relative; overflow: hidden; }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(13, 27, 42, 0.35); }
+        .login-error { color: var(--danger); font-size: 13px; margin-top: 8px; min-height: 20px; font-weight: 500; }
+        .login-footer { margin-top: 24px; font-size: 11px; color: var(--text-light); letter-spacing: 0.5px; }
+        #app-screen { display: none; min-height: 100vh; }
+        #app-screen.active { display: flex; }
+        .sidebar { width: var(--sidebar-width); background: #0d1b2a; color: #fff; min-height: 100vh; position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; display: flex; flex-direction: column; box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2); }
+        .sidebar-header { padding: 24px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; gap: 12px; }
+        .sidebar-logo { width: 42px; height: 42px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #0d1b2a; flex-shrink: 0; }
+        .sidebar-brand { font-weight: 700; font-size: 15px; letter-spacing: -0.3px; line-height: 1.2; }
+        .sidebar-brand small { display: block; font-weight: 400; font-size: 10px; letter-spacing: 1.5px; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; }
+        .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+        .sidebar-nav a { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: rgba(255, 255, 255, 0.7); text-decoration: none; border-radius: var(--radius-sm); transition: var(--transition); font-size: 14px; font-weight: 500; cursor: pointer; position: relative; }
+        .sidebar-nav a:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+        .sidebar-nav a.active { background: rgba(201, 168, 76, 0.15); color: var(--accent); font-weight: 600; }
+        .sidebar-nav a.active::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; background: var(--accent); border-radius: 0 3px 3px 0; }
+        .sidebar-nav a i { width: 20px; text-align: center; font-size: 16px; }
+        .sidebar-footer { padding: 12px 16px; border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        .sidebar-footer .user-avatar { width: 36px; height: 36px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #0d1b2a; font-size: 14px; flex-shrink: 0; }
+        .sidebar-footer .user-info { flex: 1; min-width: 0; }
+        .sidebar-footer .user-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sidebar-footer .user-role { font-size: 10px; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; }
+        .sidebar-footer .action-btn { background: none; border: none; color: rgba(255, 255, 255, 0.5); cursor: pointer; font-size: 16px; padding: 6px; border-radius: 50%; transition: var(--transition); display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; }
+        .sidebar-footer .action-btn:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .sidebar-footer .switch-btn:hover { color: var(--accent); background: rgba(201, 168, 76, 0.15); }
+        .main-content { flex: 1; margin-left: var(--sidebar-width); padding: 28px 32px; min-height: 100vh; background: var(--bg); }
+        .page-header { margin-bottom: 28px; }
+        .page-header h2 { font-size: 26px; font-weight: 700; color: var(--primary); letter-spacing: -0.5px; }
+        .page-header .breadcrumb { font-size: 12px; color: var(--text-light); margin-top: 4px; letter-spacing: 0.5px; text-transform: uppercase; }
+        .view { display: none; }
+        .view.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; margin-bottom: 20px; border: 1px solid var(--border); transition: var(--transition); }
+        .card:hover { box-shadow: var(--shadow-lg); }
+        .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+        .card-header h3 { font-size: 17px; font-weight: 700; color: var(--primary); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: var(--card); border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow); border: 1px solid var(--border); display: flex; align-items: center; gap: 16px; transition: var(--transition); }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .stat-icon { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+        .stat-icon.blue { background: #eff6ff; color: #3b82f6; }
+        .stat-icon.green { background: #ecfdf5; color: #10b981; }
+        .stat-icon.amber { background: #fffbeb; color: #f59e0b; }
+        .stat-icon.red { background: #fef2f2; color: #ef4444; }
+        .stat-icon.slate { background: #e2e8f0; color: #1e293b; }
+        .stat-info .stat-value { font-size: 28px; font-weight: 800; color: var(--primary); letter-spacing: -1px; }
+        .stat-info .stat-label { font-size: 12px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: var(--radius-xs); font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: var(--transition); font-family: 'Inter', sans-serif; letter-spacing: 0.3px; white-space: nowrap; }
+        .btn-primary { background: var(--primary-light); color: #fff; }
+        .btn-primary:hover { background: #0d1b2a; box-shadow: 0 4px 12px rgba(27, 58, 92, 0.3); transform: translateY(-1px); }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-success:hover { background: #059669; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transform: translateY(-1px); }
+        .btn-danger { background: #fff; color: var(--danger); border: 2px solid #fecaca; }
+        .btn-danger:hover { background: #fef2f2; border-color: #ef4444; }
+        .btn-warning { background: var(--warning); color: #000; }
+        .btn-warning:hover { background: #d97706; color: #fff; }
+        .btn-outline { background: #fff; color: var(--primary-light); border: 2px solid var(--border); }
+        .btn-outline:hover { border-color: var(--primary-light); background: #f8fafc; }
+        .btn-lg { padding: 16px 32px; font-size: 18px; border-radius: var(--radius-sm); font-weight: 700; }
+        .btn-xl { padding: 20px 40px; font-size: 22px; border-radius: 16px; font-weight: 800; letter-spacing: -0.5px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+        .btn-icon { width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; gap: 4px; }
+        .filter-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+        .filter-bar .form-group { flex: 1 1 180px; min-width: 150px; }
+        .filter-bar .form-group label { display: block; font-size: 11px; font-weight: 600; color: var(--text-light); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .filter-bar .form-group input, .filter-bar .form-group select { width: 100%; padding: 10px 12px; border: 2px solid var(--border); border-radius: var(--radius-xs); font-size: 13px; font-family: 'Inter', sans-serif; transition: var(--transition); background: #fafbfc; }
+        .filter-bar .form-group input:focus, .filter-bar .form-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1); background: #fff; }
+        .filter-bar .filter-actions { display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+        .table-container { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        table th, table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); }
+        table th { background: #f8fafc; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-light); }
+        table tbody tr { transition: var(--transition); }
+        table tbody tr:hover { background: #f8fafc; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .badge-rigoroso { background: #1e293b; color: #f1f5f9; }
+        .bip-area { text-align: center; padding: 40px 20px; background: linear-gradient(135deg, #f8fafc 0%, #fff 100%); border-radius: var(--radius); border: 2px dashed var(--border); margin-bottom: 20px; transition: var(--transition); position: relative; }
+        .bip-area.flash { border-color: var(--success); background: #f0fdf4; animation: flashGreen 0.5s ease; }
+        @keyframes flashGreen { 0%,100% { background: #f0fdf4; } 50% { background: #bbf7d0; } }
+        .bip-counter { font-size: 120px; font-weight: 900; color: var(--primary); line-height: 1; letter-spacing: -4px; transition: var(--transition); }
+        .bip-counter.pulse { animation: pulseNum 0.3s ease; }
+        @keyframes pulseNum { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); color: var(--success); } }
+        .bip-label { font-size: 18px; color: var(--text-light); font-weight: 500; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+        .bip-input-area { display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+        .bip-input-area input { width: 300px; padding: 14px 18px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 16px; font-family: 'Inter', sans-serif; text-align: center; font-weight: 600; letter-spacing: 1px; transition: var(--transition); }
+        .bip-input-area input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.1); }
+        .timer-display { font-size: 32px; font-weight: 700; color: var(--primary-light); letter-spacing: -1px; margin-bottom: 8px; font-variant-numeric: tabular-nums; font-family: 'Inter', monospace; }
+        .timer-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-light); }
+        .amostras-grid { display: flex; flex-wrap: wrap; gap: 10px; max-height: 350px; overflow-y: auto; padding: 8px 0; align-items: flex-start; }
+        .amostra-item { width: 85px; min-height: 70px; border-radius: var(--radius-xs); display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; cursor: pointer; transition: var(--transition); border: 2px solid transparent; position: relative; flex-shrink: 0; padding: 6px 4px; text-align: center; gap: 2px; user-select: none; }
+        .amostra-item.readonly { cursor: default; pointer-events: none; }
+        .amostra-item.readonly:hover { transform: none !important; box-shadow: none !important; }
+        .amostra-item .amostra-num { font-size: 13px; font-weight: 800; letter-spacing: -0.3px; }
+        .amostra-item .amostra-codigo { font-size: 10px; font-weight: 600; word-break: break-all; line-height: 1.2; max-width: 100%; color: inherit; opacity: 0.9; }
+        .amostra-item .edit-icon { position: absolute; top: 4px; right: 4px; font-size: 10px; opacity: 0; transition: opacity 0.2s; color: rgba(0, 0, 0, 0.4); pointer-events: none; }
+        .amostra-item:hover .edit-icon { opacity: 1; }
+        .amostra-item .status-icon { position: absolute; top: -6px; left: -6px; width: 18px; height: 18px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25); display: flex; align-items: center; justify-content: center; font-size: 9px; color: #fff; }
+        .amostra-item.normal { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+        .amostra-item.normal:hover { background: #d1fae5; transform: scale(1.05); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08); }
+        .amostra-item.rigoroso { background: #1e293b; color: #f1f5f9; border-color: #475569; }
+        .amostra-item.rigoroso:hover { background: #0f172a; transform: scale(1.05); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
+        .amostra-item.rigoroso .status-icon { background: #c9a84c; }
+        .amostra-item.problem { background: #fef2f2; color: #991b1b; border-color: #fecaca; animation: shake 0.5s ease; }
+        .amostra-item.problem:hover { background: #fee2e2; transform: scale(1.05); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08); }
+        .amostra-item.problem .status-icon { background: #ef4444; }
+        @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+        .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease; }
+        .modal { background: #fff; border-radius: 20px; padding: 32px; width: 90%; max-width: 700px; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-xl); position: relative; }
+        .modal h3 { font-size: 22px; font-weight: 700; margin-bottom: 20px; color: var(--primary); letter-spacing: -0.5px; }
+        .modal .close-btn { position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-light); transition: var(--transition); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .modal .close-btn:hover { background: #f1f5f9; color: var(--danger); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .form-row.full { grid-template-columns: 1fr; }
+        .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-light); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-group input, .form-group select { width: 100%; padding: 12px 14px; border: 2px solid var(--border); border-radius: var(--radius-xs); font-size: 14px; font-family: 'Inter', sans-serif; transition: var(--transition); background: #fafbfc; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.1); background: #fff; }
+        .signature-canvas-container { border: 2px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: #fafbfc; cursor: crosshair; touch-action: none; }
+        .signature-canvas-container canvas { display: block; width: 100%; height: 150px; }
+        .signature-actions { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 14px 20px; border-radius: var(--radius-sm); color: #fff; font-weight: 600; font-size: 14px; box-shadow: var(--shadow-lg); animation: slideIn 0.3s ease, fadeOut 0.3s ease 3s forwards; max-width: 400px; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
+        .toast-success { background: #10b981; }
+        .toast-error { background: #ef4444; }
+        .toast-info { background: #3b82f6; }
+        .result-count { font-size: 13px; color: var(--text-light); margin-bottom: 8px; font-weight: 500; }
+        .result-count strong { color: var(--primary); }
         @media (max-width: 768px) {
-            .sidebar {
-                width: 60px;
-                overflow: hidden;
-            }
-            .sidebar .sidebar-brand,
-            .sidebar .user-info,
-            .sidebar-nav a span {
-                display: none;
-            }
-            .sidebar-nav a {
-                justify-content: center;
-                padding: 12px;
-            }
-            .sidebar-nav a i {
-                font-size: 20px;
-            }
-            .main-content {
-                margin-left: 60px;
-                padding: 16px;
-            }
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            .bip-counter {
-                font-size: 70px;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-            .amostra-item {
-                width: 70px;
-                min-height: 60px;
-            }
-            .filter-bar {
-                flex-direction: column;
-            }
-            .filter-bar .form-group {
-                flex: 1 1 auto;
-                min-width: 100%;
-            }
-            .filter-bar .filter-actions {
-                width: 100%;
-            }
-            .filter-bar .filter-actions .btn {
-                flex: 1;
-                justify-content: center;
-            }
+            .sidebar { width: 60px; overflow: hidden; }
+            .sidebar .sidebar-brand, .sidebar .user-info, .sidebar-nav a span { display: none; }
+            .sidebar-nav a { justify-content: center; padding: 12px; }
+            .sidebar-nav a i { font-size: 20px; }
+            .main-content { margin-left: 60px; padding: 16px; }
+            .form-row { grid-template-columns: 1fr; }
+            .bip-counter { font-size: 70px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .amostra-item { width: 70px; min-height: 60px; }
+            .filter-bar { flex-direction: column; }
+            .filter-bar .form-group { flex: 1 1 auto; min-width: 100%; }
+            .filter-bar .filter-actions { width: 100%; }
+            .filter-bar .filter-actions .btn { flex: 1; justify-content: center; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ==================== LOGIN SCREEN ==================== -->
+    <!-- LOGIN SCREEN -->
     <div id="login-screen">
         <div class="login-container">
             <div class="login-card">
@@ -1163,32 +231,23 @@
                     <i class="fa-solid fa-right-to-bracket"></i>&nbsp; ACESSAR SISTEMA
                 </button>
                 <p class="login-error" id="login-error"></p>
-                <p class="login-footer">🔒 Ambiente Seguro &mdash; DIMEP SISTEMAS v2.0 (Firebase)</p>
+                <p class="login-footer">🔒 Ambiente Seguro &mdash; DIMEP SISTEMAS v2.0 (Firebase + Auth)</p>
             </div>
         </div>
     </div>
 
-    <!-- ==================== APP SCREEN ==================== -->
+    <!-- APP SCREEN (mesma estrutura) -->
     <div id="app-screen">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="sidebar-logo"><i class="fa-solid fa-microchip"></i></div>
                 <div class="sidebar-brand">DIMEP<small>Sistemas</small></div>
             </div>
             <nav class="sidebar-nav">
-                <a onclick="navigateTo('dashboard')" class="active" data-nav="dashboard">
-                    <i class="fa-solid fa-gauge-high"></i> <span>Dashboard</span>
-                </a>
-                <a onclick="navigateTo('test')" data-nav="test">
-                    <i class="fa-solid fa-barcode-read"></i> <span>Novo Teste</span>
-                </a>
-                <a onclick="navigateTo('history')" data-nav="history">
-                    <i class="fa-solid fa-clock-rotate-left"></i> <span>Histórico</span>
-                </a>
-                <a onclick="navigateTo('users')" data-nav="users" id="nav-users" style="display:none;">
-                    <i class="fa-solid fa-users-gear"></i> <span>Usuários</span>
-                </a>
+                <a onclick="navigateTo('dashboard')" class="active" data-nav="dashboard"><i class="fa-solid fa-gauge-high"></i> <span>Dashboard</span></a>
+                <a onclick="navigateTo('test')" data-nav="test"><i class="fa-solid fa-barcode-read"></i> <span>Novo Teste</span></a>
+                <a onclick="navigateTo('history')" data-nav="history"><i class="fa-solid fa-clock-rotate-left"></i> <span>Histórico</span></a>
+                <a onclick="navigateTo('users')" data-nav="users" id="nav-users" style="display:none;"><i class="fa-solid fa-users-gear"></i> <span>Usuários</span></a>
             </nav>
             <div class="sidebar-footer">
                 <div class="user-avatar" id="sidebar-avatar">A</div>
@@ -1200,250 +259,47 @@
                 <button class="action-btn logout-btn" title="Sair" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
             </div>
         </aside>
-
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Dashboard View -->
+            <!-- Dashboard -->
             <div id="dashboard-view" class="view active">
-                <div class="page-header">
-                    <h2>📊 Dashboard</h2>
-                    <p class="breadcrumb">Visão geral do sistema</p>
-                </div>
+                <div class="page-header"><h2>📊 Dashboard</h2><p class="breadcrumb">Visão geral do sistema</p></div>
                 <div class="stats-grid" id="dashboard-stats">
-                    <div class="stat-card">
-                        <div class="stat-icon blue"><i class="fa-solid fa-flask"></i></div>
-                        <div class="stat-info"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total de Testes</div></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div>
-                        <div class="stat-info"><div class="stat-value" id="stat-approved">0</div><div class="stat-label">Aprovados</div></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                        <div class="stat-info"><div class="stat-value" id="stat-problems">0</div><div class="stat-label">Com Problemas</div></div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon amber"><i class="fa-solid fa-clock"></i></div>
-                        <div class="stat-info"><div class="stat-value" id="stat-avg-time">0min</div><div class="stat-label">Tempo Médio</div></div>
-                    </div>
+                    <div class="stat-card"><div class="stat-icon blue"><i class="fa-solid fa-flask"></i></div><div class="stat-info"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total de Testes</div></div></div>
+                    <div class="stat-card"><div class="stat-icon green"><i class="fa-solid fa-check-circle"></i></div><div class="stat-info"><div class="stat-value" id="stat-approved">0</div><div class="stat-label">Aprovados</div></div></div>
+                    <div class="stat-card"><div class="stat-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="stat-info"><div class="stat-value" id="stat-problems">0</div><div class="stat-label">Com Problemas</div></div></div>
+                    <div class="stat-card"><div class="stat-icon amber"><i class="fa-solid fa-clock"></i></div><div class="stat-info"><div class="stat-value" id="stat-avg-time">0min</div><div class="stat-label">Tempo Médio</div></div></div>
                 </div>
-                <div class="card">
-                    <div class="card-header"><h3>📋 Últimos Testes Realizados</h3></div>
-                    <div class="table-container">
-                        <table>
-                            <thead><tr><th>Data</th><th>Palete</th><th>NF</th><th>Produto</th><th>Inspetor</th><th>Amostras</th><th>Problemas</th><th>Tempo</th><th>Ações</th></tr></thead>
-                            <tbody id="recent-tests-table"><tr><td colspan="9" style="text-align:center;color:var(--text-light);padding:30px;">Nenhum teste realizado ainda.</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
+                <div class="card"><div class="card-header"><h3>📋 Últimos Testes Realizados</h3></div><div class="table-container"><table><thead><tr><th>Data</th><th>Palete</th><th>NF</th><th>Produto</th><th>Inspetor</th><th>Amostras</th><th>Problemas</th><th>Tempo</th><th>Ações</th></tr></thead><tbody id="recent-tests-table"><tr><td colspan="9" style="text-align:center;color:var(--text-light);padding:30px;">Nenhum teste realizado ainda.</td></tr></tbody></table></div></div>
             </div>
-
-            <!-- Test View -->
+            <!-- Teste -->
             <div id="test-view" class="view">
-                <div class="page-header">
-                    <h2>🔬 Teste em Andamento</h2>
-                    <p class="breadcrumb">Registro de amostragens por bipagem</p>
-                </div>
-                <div id="test-not-started">
-                    <div class="card" style="text-align:center;padding:60px 20px;">
-                        <i class="fa-solid fa-play-circle" style="font-size:64px;color:var(--accent);margin-bottom:16px;display:block;"></i>
-                        <h3 style="margin-bottom:8px;">Nenhum teste em andamento</h3>
-                        <p style="color:var(--text-light);margin-bottom:20px;">Inicie um novo teste para começar a bipagem de produtos.</p>
-                        <button class="btn btn-primary btn-lg" onclick="startNewTest()">
-                            <i class="fa-solid fa-barcode-read"></i> INICIAR NOVO TESTE
-                        </button>
-                    </div>
-                </div>
+                <div class="page-header"><h2>🔬 Teste em Andamento</h2><p class="breadcrumb">Registro de amostragens por bipagem</p></div>
+                <div id="test-not-started"><div class="card" style="text-align:center;padding:60px 20px;"><i class="fa-solid fa-play-circle" style="font-size:64px;color:var(--accent);margin-bottom:16px;display:block;"></i><h3 style="margin-bottom:8px;">Nenhum teste em andamento</h3><p style="color:var(--text-light);margin-bottom:20px;">Inicie um novo teste para começar a bipagem de produtos.</p><button class="btn btn-primary btn-lg" onclick="startNewTest()"><i class="fa-solid fa-barcode-read"></i> INICIAR NOVO TESTE</button></div></div>
                 <div id="test-in-progress" style="display:none;">
-                    <div class="card" style="text-align:center;">
-                        <div class="timer-label">⏱ TEMPO DECORRIDO</div>
-                        <div class="timer-display" id="test-timer">00:00:00</div>
-                        <div class="bip-area" id="bip-area">
-                            <div class="bip-label">AMOSTRAGEM ATUAL</div>
-                            <div class="bip-counter" id="bip-counter">0</div>
-                            <div class="bip-input-area">
-                                <input type="text" id="bip-input" placeholder="Escaneie ou digite o código do lote (bip automático após parar de digitar)" autofocus>
-                                <button class="btn btn-success btn-lg" onclick="bipProduct()" id="btn-bip">
-                                    <i class="fa-solid fa-barcode"></i> BIPAR
-                                </button>
-                                <button class="btn btn-warning" onclick="undoLastBip()" title="Desfazer último bip">
-                                    <i class="fa-solid fa-rotate-left"></i> Desfazer
-                                </button>
-                            </div>
-                            <p style="font-size:11px;color:var(--text-light);margin-top:10px;">O código será validado <strong>automaticamente</strong> após você parar de digitar por 0,8 segundos.</p>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header">
-                            <h3>📦 Amostragens Registradas</h3>
-                            <span style="font-size:13px;color:var(--text-light);">
-                                Total: <strong id="amostras-count">0</strong> |
-                                Rigoroso: <strong id="amostras-rigoroso-count" style="color:#1e293b;">0</strong> |
-                                Problema: <strong id="amostras-problem-count" style="color:#ef4444;">0</strong>
-                            </span>
-                        </div>
-                        <div class="amostras-grid" id="amostras-grid">
-                            <p style="color:var(--text-light);width:100%;text-align:center;padding:20px;">Nenhuma amostragem ainda. Comece a bipar!</p>
-                        </div>
-                        <p style="font-size:11px;color:var(--text-light);margin-top:8px;">
-                            💡 <strong>Clique simples</strong> = Alterna status: Normal → Rigoroso → Problema |
-                            <strong>Duplo clique</strong> = Editar código do lote
-                        </p>
-                    </div>
-                    <div style="text-align:right;margin-top:8px;">
-                        <button class="btn btn-primary btn-lg" onclick="openFinalizeModal()">
-                            <i class="fa-solid fa-check-double"></i> FINALIZAR TESTE
-                        </button>
-                    </div>
+                    <div class="card" style="text-align:center;"><div class="timer-label">⏱ TEMPO DECORRIDO</div><div class="timer-display" id="test-timer">00:00:00</div><div class="bip-area" id="bip-area"><div class="bip-label">AMOSTRAGEM ATUAL</div><div class="bip-counter" id="bip-counter">0</div><div class="bip-input-area"><input type="text" id="bip-input" placeholder="Escaneie ou digite o código do lote (bip automático após parar de digitar)" autofocus><button class="btn btn-success btn-lg" onclick="bipProduct()" id="btn-bip"><i class="fa-solid fa-barcode"></i> BIPAR</button><button class="btn btn-warning" onclick="undoLastBip()" title="Desfazer último bip"><i class="fa-solid fa-rotate-left"></i> Desfazer</button></div><p style="font-size:11px;color:var(--text-light);margin-top:10px;">O código será validado <strong>automaticamente</strong> após você parar de digitar por 0,8 segundos.</p></div></div>
+                    <div class="card"><div class="card-header"><h3>📦 Amostragens Registradas</h3><span style="font-size:13px;color:var(--text-light);">Total: <strong id="amostras-count">0</strong> | Rigoroso: <strong id="amostras-rigoroso-count" style="color:#1e293b;">0</strong> | Problema: <strong id="amostras-problem-count" style="color:#ef4444;">0</strong></span></div><div class="amostras-grid" id="amostras-grid"><p style="color:var(--text-light);width:100%;text-align:center;padding:20px;">Nenhuma amostragem ainda. Comece a bipar!</p></div><p style="font-size:11px;color:var(--text-light);margin-top:8px;">💡 <strong>Clique simples</strong> = Alterna status: Normal → Rigoroso → Problema | <strong>Duplo clique</strong> = Editar código do lote</p></div>
+                    <div style="text-align:right;margin-top:8px;"><button class="btn btn-primary btn-lg" onclick="openFinalizeModal()"><i class="fa-solid fa-check-double"></i> FINALIZAR TESTE</button></div>
                 </div>
             </div>
-
-            <!-- History View -->
+            <!-- Histórico -->
             <div id="history-view" class="view">
-                <div class="page-header">
-                    <h2>📁 Histórico de Testes</h2>
-                    <p class="breadcrumb">Registros de inspeções realizadas</p>
-                </div>
-                <!-- FILTROS -->
-                <div class="card" style="padding:16px 20px;">
-                    <div class="filter-bar" id="history-filters">
-                        <div class="form-group">
-                            <label><i class="fa-solid fa-magnifying-glass"></i> Buscar</label>
-                            <input type="text" id="filter-search" placeholder="Nome, produto, inspetor, palete..." oninput="applyHistoryFilters()">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fa-solid fa-file-invoice"></i> Nota Fiscal</label>
-                            <input type="text" id="filter-nf" placeholder="Nº da NF" oninput="applyHistoryFilters()">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fa-solid fa-calendar"></i> Data Início</label>
-                            <input type="date" id="filter-date-from" onchange="applyHistoryFilters()">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fa-solid fa-calendar-check"></i> Data Fim</label>
-                            <input type="date" id="filter-date-to" onchange="applyHistoryFilters()">
-                        </div>
-                        <div class="form-group">
-                            <label><i class="fa-solid fa-filter"></i> Status</label>
-                            <select id="filter-status" onchange="applyHistoryFilters()">
-                                <option value="all">Todos</option>
-                                <option value="approved">Aprovados (sem problema)</option>
-                                <option value="problem">Com Problema</option>
-                                <option value="rigoroso">Com Teste Rigoroso</option>
-                            </select>
-                        </div>
-                        <div class="filter-actions">
-                            <button class="btn btn-outline btn-sm" onclick="clearHistoryFilters()" title="Limpar todos os filtros">
-                                <i class="fa-solid fa-eraser"></i> Limpar
-                            </button>
-                        </div>
-                    </div>
-                    <p class="result-count" id="filter-result-count"></p>
-                </div>
-                <!-- TABELA -->
-                <div class="card">
-                    <div class="table-container">
-                        <table>
-                            <thead><tr><th>ID</th><th>Data</th><th>Palete</th><th>NF</th><th>Produto</th><th>Inspetor</th><th>Amostras</th><th>Problemas</th><th>Tempo</th><th>Ações</th></tr></thead>
-                            <tbody id="history-table"><tr><td colspan="10" style="text-align:center;color:var(--text-light);padding:30px;">Nenhum teste no histórico.</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
+                <div class="page-header"><h2>📁 Histórico de Testes</h2><p class="breadcrumb">Registros de inspeções realizadas</p></div>
+                <div class="card" style="padding:16px 20px;"><div class="filter-bar"><div class="form-group"><label><i class="fa-solid fa-magnifying-glass"></i> Buscar</label><input type="text" id="filter-search" placeholder="Nome, produto, inspetor, palete..." oninput="applyHistoryFilters()"></div><div class="form-group"><label><i class="fa-solid fa-file-invoice"></i> Nota Fiscal</label><input type="text" id="filter-nf" placeholder="Nº da NF" oninput="applyHistoryFilters()"></div><div class="form-group"><label><i class="fa-solid fa-calendar"></i> Data Início</label><input type="date" id="filter-date-from" onchange="applyHistoryFilters()"></div><div class="form-group"><label><i class="fa-solid fa-calendar-check"></i> Data Fim</label><input type="date" id="filter-date-to" onchange="applyHistoryFilters()"></div><div class="form-group"><label><i class="fa-solid fa-filter"></i> Status</label><select id="filter-status" onchange="applyHistoryFilters()"><option value="all">Todos</option><option value="approved">Aprovados (sem problema)</option><option value="problem">Com Problema</option><option value="rigoroso">Com Teste Rigoroso</option></select></div><div class="filter-actions"><button class="btn btn-outline btn-sm" onclick="clearHistoryFilters()"><i class="fa-solid fa-eraser"></i> Limpar</button></div></div><p class="result-count" id="filter-result-count"></p></div>
+                <div class="card"><div class="table-container"><table><thead><tr><th>ID</th><th>Data</th><th>Palete</th><th>NF</th><th>Produto</th><th>Inspetor</th><th>Amostras</th><th>Problemas</th><th>Tempo</th><th>Ações</th></tr></thead><tbody id="history-table"><tr><td colspan="10" style="text-align:center;color:var(--text-light);padding:30px;">Nenhum teste no histórico.</td></tr></tbody></table></div></div>
             </div>
-
-            <!-- Users View (Admin only) -->
-            <div id="users-view" class="view">
-                <div class="page-header">
-                    <h2>👥 Gerenciamento de Usuários</h2>
-                    <p class="breadcrumb">Administração de acessos ao sistema</p>
-                </div>
-                <div style="text-align:right;margin-bottom:16px;">
-                    <button class="btn btn-primary" onclick="openAddUserModal()">
-                        <i class="fa-solid fa-user-plus"></i> Adicionar Usuário
-                    </button>
-                </div>
-                <div class="card">
-                    <div class="table-container">
-                        <table>
-                            <thead><tr><th>Usuário</th><th>Nome Completo</th><th>Função</th><th>Ações</th></tr></thead>
-                            <tbody id="users-table"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+            <!-- Usuários -->
+            <div id="users-view" class="view"><div class="page-header"><h2>👥 Gerenciamento de Usuários</h2><p class="breadcrumb">Administração de acessos ao sistema</p></div><div style="text-align:right;margin-bottom:16px;"><button class="btn btn-primary" onclick="openAddUserModal()"><i class="fa-solid fa-user-plus"></i> Adicionar Usuário</button></div><div class="card"><div class="table-container"><table><thead><tr><th>Usuário</th><th>Nome Completo</th><th>Função</th><th>Ações</th></tr></thead><tbody id="users-table"></tbody></table></div></div></div>
         </main>
     </div>
 
-    <!-- ==================== MODAL: FINALIZAR TESTE ==================== -->
-    <div class="modal-overlay" id="modal-finalize-overlay">
-        <div class="modal">
-            <button class="close-btn" onclick="closeFinalizeModal()"><i class="fa-solid fa-xmark"></i></button>
-            <h3>🏁 Finalizar Teste</h3>
-            <div class="form-row">
-                <div class="form-group"><label>Identificação do Palete *</label><input type="text" id="final-palete" placeholder="Ex: PAL-001"></div>
-                <div class="form-group"><label>Nota Fiscal *</label><input type="text" id="final-nf" placeholder="Ex: NF-123456"></div>
-            </div>
-            <div class="form-row full">
-                <div class="form-group"><label>Produto *</label><input type="text" id="final-produto" placeholder="Descrição do produto"></div>
-            </div>
-            <div class="form-row full">
-                <div class="form-group"><label>Título do Teste</label><input type="text" id="final-titulo" placeholder="Ex: Inspeção de qualidade - Lote 001"></div>
-            </div>
-            <div style="background:#f8fafc;border-radius:var(--radius-sm);padding:16px;margin-bottom:16px;">
-                <strong>📊 Resumo:</strong>
-                <span id="final-resumo" style="color:var(--text-light);">Amostragens: 0 | Rigoroso: 0 | Com problema: 0</span>
-            </div>
-            <div class="form-group">
-                <label>✍️ Assinatura Eletrônica do Inspetor</label>
-                <div class="signature-canvas-container">
-                    <canvas id="signature-canvas" width="600" height="150"></canvas>
-                </div>
-                <div class="signature-actions">
-                    <button class="btn btn-outline btn-sm" onclick="clearSignature()"><i class="fa-solid fa-eraser"></i> Limpar</button>
-                </div>
-                <p style="font-size:10px;color:var(--text-light);">Desenhe sua assinatura acima usando o mouse ou touch</p>
-            </div>
-            <div style="text-align:right;margin-top:16px;display:flex;gap:12px;justify-content:flex-end;">
-                <button class="btn btn-outline" onclick="closeFinalizeModal()">Cancelar</button>
-                <button class="btn btn-success btn-lg" onclick="finalizeAndSaveTest()">
-                    <i class="fa-solid fa-file-pdf"></i> FINALIZAR & GERAR PDF
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== MODAL: ADICIONAR USUÁRIO ==================== -->
-    <div class="modal-overlay" id="modal-add-user-overlay">
-        <div class="modal" style="max-width:500px;">
-            <button class="close-btn" onclick="closeAddUserModal()"><i class="fa-solid fa-xmark"></i></button>
-            <h3>➕ Adicionar Usuário</h3>
-            <div class="form-group"><label>Nome de Usuário *</label><input type="text" id="add-user-username" placeholder="Login do usuário"></div>
-            <div class="form-group"><label>Nome Completo *</label><input type="text" id="add-user-fullname" placeholder="Nome que aparecerá nos PDFs"></div>
-            <div class="form-group"><label>Senha *</label><input type="password" id="add-user-password" placeholder="Senha de acesso"></div>
-            <div class="form-group"><label>Função</label>
-                <select id="add-user-role"><option value="inspetor">Inspetor (Comum)</option><option value="admin">Administrador</option></select>
-            </div>
-            <div style="text-align:right;margin-top:16px;display:flex;gap:12px;justify-content:flex-end;">
-                <button class="btn btn-outline" onclick="closeAddUserModal()">Cancelar</button>
-                <button class="btn btn-primary" onclick="addUser()"><i class="fa-solid fa-save"></i> Salvar Usuário</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== MODAL: VISUALIZAR TESTE ==================== -->
-    <div class="modal-overlay" id="modal-view-test-overlay">
-        <div class="modal" style="max-width:850px;">
-            <button class="close-btn" onclick="closeViewTestModal()"><i class="fa-solid fa-xmark"></i></button>
-            <h3>🔍 Visualização do Teste</h3>
-            <div id="view-test-details"></div>
-        </div>
-    </div>
-
-    <!-- ==================== TOAST CONTAINER ==================== -->
+    <!-- MODAIS -->
+    <div class="modal-overlay" id="modal-finalize-overlay"><div class="modal"><button class="close-btn" onclick="closeFinalizeModal()"><i class="fa-solid fa-xmark"></i></button><h3>🏁 Finalizar Teste</h3><div class="form-row"><div class="form-group"><label>Identificação do Palete *</label><input type="text" id="final-palete" placeholder="Ex: PAL-001"></div><div class="form-group"><label>Nota Fiscal *</label><input type="text" id="final-nf" placeholder="Ex: NF-123456"></div></div><div class="form-row full"><div class="form-group"><label>Produto *</label><input type="text" id="final-produto" placeholder="Descrição do produto"></div></div><div class="form-row full"><div class="form-group"><label>Título do Teste</label><input type="text" id="final-titulo" placeholder="Ex: Inspeção de qualidade - Lote 001"></div></div><div style="background:#f8fafc;border-radius:var(--radius-sm);padding:16px;margin-bottom:16px;"><strong>📊 Resumo:</strong><span id="final-resumo" style="color:var(--text-light);">Amostragens: 0 | Rigoroso: 0 | Com problema: 0</span></div><div class="form-group"><label>✍️ Assinatura Eletrônica do Inspetor</label><div class="signature-canvas-container"><canvas id="signature-canvas" width="600" height="150"></canvas></div><div class="signature-actions"><button class="btn btn-outline btn-sm" onclick="clearSignature()"><i class="fa-solid fa-eraser"></i> Limpar</button></div><p style="font-size:10px;color:var(--text-light);">Desenhe sua assinatura acima usando o mouse ou touch</p></div><div style="text-align:right;margin-top:16px;display:flex;gap:12px;justify-content:flex-end;"><button class="btn btn-outline" onclick="closeFinalizeModal()">Cancelar</button><button class="btn btn-success btn-lg" onclick="finalizeAndSaveTest()"><i class="fa-solid fa-file-pdf"></i> FINALIZAR & GERAR PDF</button></div></div></div>
+    <div class="modal-overlay" id="modal-add-user-overlay"><div class="modal" style="max-width:500px;"><button class="close-btn" onclick="closeAddUserModal()"><i class="fa-solid fa-xmark"></i></button><h3>➕ Adicionar Usuário</h3><div class="form-group"><label>Nome de Usuário *</label><input type="text" id="add-user-username" placeholder="Login do usuário"></div><div class="form-group"><label>Nome Completo *</label><input type="text" id="add-user-fullname" placeholder="Nome que aparecerá nos PDFs"></div><div class="form-group"><label>Senha *</label><input type="password" id="add-user-password" placeholder="Senha de acesso"></div><div class="form-group"><label>Função</label><select id="add-user-role"><option value="inspetor">Inspetor (Comum)</option><option value="admin">Administrador</option></select></div><div style="text-align:right;margin-top:16px;display:flex;gap:12px;justify-content:flex-end;"><button class="btn btn-outline" onclick="closeAddUserModal()">Cancelar</button><button class="btn btn-primary" onclick="addUser()"><i class="fa-solid fa-save"></i> Salvar Usuário</button></div></div></div>
+    <div class="modal-overlay" id="modal-view-test-overlay"><div class="modal" style="max-width:850px;"><button class="close-btn" onclick="closeViewTestModal()"><i class="fa-solid fa-xmark"></i></button><h3>🔍 Visualização do Teste</h3><div id="view-test-details"></div></div></div>
     <div class="toast-container" id="toast-container"></div>
 
     <script>
-        // ==================== FIREBASE INIT ====================
+        // ==================== CONFIGURAÇÃO FIREBASE ====================
         const firebaseConfig = {
             apiKey: "AIzaSyCfTaoSnyXg3za7WRWj466xIhP-8wIHMik",
             authDomain: "problemas-274fa.firebaseapp.com",
@@ -1455,25 +311,51 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
-        // ==================== DATA LAYER (Firestore) ====================
+        // Variáveis globais
         let allUsers = [];
         let allTests = [];
         let loggedUser = null;
-        let currentTest = null; // teste em andamento (ainda em memória + localStorage)
+        let currentTest = null;
+        let timerInterval = null;
+        let testStartTime = null;
+        let bipDebounceTimer = null;
 
         // Referências das coleções
         const usersCollection = db.collection("users");
         const testsCollection = db.collection("tests");
 
-        // Carrega dados iniciais do Firestore
+        // ==================== AUTENTICAÇÃO ANÔNIMA ====================
+        async function ensureAuth() {
+            return new Promise((resolve, reject) => {
+                const unsubscribe = auth.onAuthStateChanged(async (user) => {
+                    unsubscribe();
+                    if (user) {
+                        resolve(user);
+                    } else {
+                        try {
+                            const cred = await auth.signInAnonymously();
+                            resolve(cred.user);
+                        } catch (err) {
+                            reject(err);
+                        }
+                    }
+                });
+            });
+        }
+
+        // ==================== CARREGAR DADOS DO FIRESTORE ====================
         async function loadInitialData() {
             try {
-                // Carrega usuários
+                await ensureAuth();
+                // Carregar usuários
                 const usersSnap = await usersCollection.get();
                 allUsers = usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                if (allUsers.length === 0) {
-                    // Cria usuário Admin padrão
+                
+                // GARANTE QUE O ADMIN EXISTA (caso não exista, cria)
+                const adminExists = allUsers.some(u => u.username === "Admin");
+                if (!adminExists) {
                     const defaultAdmin = {
                         username: "Admin",
                         password: "20362881",
@@ -1482,82 +364,73 @@
                     };
                     await usersCollection.doc("Admin").set(defaultAdmin);
                     allUsers.push(defaultAdmin);
-                }
-
-                // Carrega testes (ordenados por dataFim decrescente)
-                const testsSnap = await testsCollection.orderBy("dataFim", "desc").get();
-                allTests = testsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                // Carrega currentTest do localStorage (se existir)
-                const savedCurrent = localStorage.getItem('dimep_current_test');
-                if (savedCurrent) {
-                    try {
-                        currentTest = JSON.parse(savedCurrent);
-                        if (currentTest && currentTest.status !== 'in_progress') {
-                            currentTest = null;
-                            localStorage.removeItem('dimep_current_test');
-                        }
-                    } catch (e) {
-                        currentTest = null;
+                    showToast("Usuário administrador criado: Admin / 20362881", "success");
+                } else {
+                    // Verifica se a senha está correta (caso alguém tenha alterado manualmente, corrige)
+                    const admin = allUsers.find(u => u.username === "Admin");
+                    if (admin.password !== "20362881") {
+                        await usersCollection.doc("Admin").update({ password: "20362881" });
+                        admin.password = "20362881";
+                        showToast("Senha do administrador redefinida para 20362881", "info");
                     }
                 }
 
-                // Tenta restaurar sessão do localStorage
+                // Carregar testes
+                const testsSnap = await testsCollection.orderBy("dataFim", "desc").get();
+                allTests = testsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                // Recuperar sessão anterior e teste em andamento
                 const savedUser = localStorage.getItem('dimep_logged_user');
                 if (savedUser) {
                     try {
                         loggedUser = JSON.parse(savedUser);
-                        // Verifica se ainda existe na lista de usuários
                         if (!allUsers.some(u => u.username === loggedUser.username && u.password === loggedUser.password)) {
                             loggedUser = null;
                             localStorage.removeItem('dimep_logged_user');
                         }
-                    } catch (e) {
-                        loggedUser = null;
-                    }
+                    } catch(e) { loggedUser = null; }
                 }
+                const savedCurrent = localStorage.getItem('dimep_current_test');
+                if (savedCurrent) {
+                    try {
+                        currentTest = JSON.parse(savedCurrent);
+                        if (currentTest && currentTest.status !== 'in_progress') currentTest = null;
+                    } catch(e) { currentTest = null; }
+                }
+                showToast("Firebase conectado com sucesso!", "success");
+                return true;
             } catch (error) {
-                console.error("Erro ao carregar dados do Firestore:", error);
-                showToast("Erro ao conectar com o banco de dados. Verifique sua conexão.", "error");
+                console.error("Erro ao carregar dados do Firebase:", error);
+                showToast("Erro ao conectar com o banco de dados. Verifique sua conexão e as regras de segurança do Firestore.", "error");
+                return false;
             }
         }
 
-        // Funções de acesso (agora síncronas com os arrays locais)
-        function getUsers() { return allUsers; }
-        function getTests() { return allTests; }
-        function getCurrentTest() { return currentTest; }
-        function getLoggedUser() { return loggedUser; }
-
-        function setLoggedUser(user) {
-            loggedUser = user;
-            if (user) {
-                localStorage.setItem('dimep_logged_user', JSON.stringify(user));
-            } else {
-                localStorage.removeItem('dimep_logged_user');
-            }
-        }
-
-        function setCurrentTest(test) {
-            currentTest = test;
-            if (test) {
-                localStorage.setItem('dimep_current_test', JSON.stringify(test));
-            } else {
-                localStorage.removeItem('dimep_current_test');
-            }
-        }
-
-        // ==================== TOAST ====================
+        // ==================== FUNÇÕES AUXILIARES ====================
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
             toast.textContent = message;
             container.appendChild(toast);
-            setTimeout(() => { toast.remove(); }, 3500);
+            setTimeout(() => toast.remove(), 3500);
+        }
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            if (h > 0) return `${h}h ${m}m ${s}s`;
+            if (m > 0) return `${m}m ${s}s`;
+            return `${s}s`;
+        }
+
+        function formatTimerDisplay(seconds) {
+            return `${String(Math.floor(seconds/3600)).padStart(2,'0')}:${String(Math.floor((seconds%3600)/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
         }
 
         // ==================== LOGIN ====================
-        function handleLogin() {
+        async function handleLogin() {
             const username = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value;
             const errorEl = document.getElementById('login-error');
@@ -1566,13 +439,16 @@
                 errorEl.textContent = 'Preencha todos os campos.';
                 return;
             }
-
+            // Garante que os dados estejam carregados antes de tentar login
+            if (allUsers.length === 0) {
+                errorEl.textContent = 'Aguardando carregamento do banco de dados... Tente novamente em alguns segundos.';
+                return;
+            }
             const user = allUsers.find(u => u.username === username && u.password === password);
             if (!user) {
                 errorEl.textContent = 'Usuário ou senha inválidos.';
                 return;
             }
-
             setLoggedUser(user);
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('app-screen').classList.add('active');
@@ -1581,12 +457,8 @@
             showToast(`Bem-vindo, ${user.fullName}!`, 'success');
         }
 
-        document.getElementById('login-password').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') handleLogin();
-        });
-        document.getElementById('login-username').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') document.getElementById('login-password').focus();
-        });
+        document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+        document.getElementById('login-username').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-password').focus(); });
 
         function logout() {
             setLoggedUser(null);
@@ -1604,9 +476,7 @@
         function switchUser() {
             if (getCurrentTest() && getCurrentTest().status === 'in_progress') {
                 if (!confirm('Há um teste em andamento. Ele será mantido salvo. Deseja trocar de usuário?')) return;
-            } else {
-                if (!confirm('Deseja trocar de usuário?')) return;
-            }
+            } else if (!confirm('Deseja trocar de usuário?')) return;
             setLoggedUser(null);
             document.getElementById('app-screen').classList.remove('active');
             document.getElementById('login-screen').style.display = 'flex';
@@ -1618,6 +488,19 @@
             showToast('Sessão encerrada. Faça login com outro usuário.', 'info');
         }
 
+        function setLoggedUser(user) {
+            loggedUser = user;
+            if (user) localStorage.setItem('dimep_logged_user', JSON.stringify(user));
+            else localStorage.removeItem('dimep_logged_user');
+        }
+        function setCurrentTest(test) {
+            currentTest = test;
+            if (test) localStorage.setItem('dimep_current_test', JSON.stringify(test));
+            else localStorage.removeItem('dimep_current_test');
+        }
+        function getCurrentTest() { return currentTest; }
+        function getLoggedUser() { return loggedUser; }
+
         function updateSidebar() {
             const user = getLoggedUser();
             if (!user) return;
@@ -1625,14 +508,11 @@
             document.getElementById('sidebar-avatar').textContent = user.fullName.charAt(0).toUpperCase();
             document.getElementById('sidebar-role').textContent = user.role === 'admin' ? 'Administrador' : 'Inspetor';
             const navUsers = document.getElementById('nav-users');
-            if (user.role === 'admin') {
-                navUsers.style.display = 'flex';
-            } else {
-                navUsers.style.display = 'none';
-            }
+            if (user.role === 'admin') navUsers.style.display = 'flex';
+            else navUsers.style.display = 'none';
         }
 
-        // ==================== NAVIGATION ====================
+        // ==================== NAVEGAÇÃO ====================
         function navigateTo(view) {
             const views = ['dashboard', 'test', 'history', 'users'];
             views.forEach(v => {
@@ -1643,7 +523,6 @@
             document.getElementById(`${view}-view`).classList.add('active');
             const navLink = document.querySelector(`[data-nav="${view}"]`);
             if (navLink) navLink.classList.add('active');
-
             if (view === 'dashboard') updateDashboard();
             if (view === 'history') { clearHistoryFilters(); applyHistoryFilters(); }
             if (view === 'users') updateUsersTable();
@@ -1655,95 +534,44 @@
             const tests = allTests;
             document.getElementById('stat-total').textContent = tests.length;
             const withProblems = tests.filter(t => t.amostras && t.amostras.some(a => a.status === 'problem')).length;
-            const withoutProblems = tests.length - withProblems;
-            document.getElementById('stat-approved').textContent = withoutProblems;
+            document.getElementById('stat-approved').textContent = tests.length - withProblems;
             document.getElementById('stat-problems').textContent = withProblems;
-
             if (tests.length > 0) {
                 const totalSeconds = tests.reduce((sum, t) => sum + (t.totalSeconds || 0), 0);
-                const avgMin = Math.round(totalSeconds / tests.length / 60);
-                document.getElementById('stat-avg-time').textContent = avgMin + 'min';
-            } else {
-                document.getElementById('stat-avg-time').textContent = '0min';
-            }
-
-            const recentTests = tests.slice(0, 8); // já ordenados decrescente
+                document.getElementById('stat-avg-time').textContent = Math.round(totalSeconds / tests.length / 60) + 'min';
+            } else document.getElementById('stat-avg-time').textContent = '0min';
+            const recentTests = tests.slice(0, 8);
             const tbody = document.getElementById('recent-tests-table');
             const user = getLoggedUser();
             const isAdmin = user && user.role === 'admin';
-            if (recentTests.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-light);padding:30px;">Nenhum teste realizado ainda.</td></tr>';
-            } else {
+            if (recentTests.length === 0) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-light);padding:30px;">Nenhum teste realizado ainda.</td></tr>';
+            else {
                 tbody.innerHTML = recentTests.map(t => {
                     const problemCount = t.amostras ? t.amostras.filter(a => a.status === 'problem').length : 0;
-                    const deleteBtn = isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteTest('${t.id}')" title="Excluir teste"><i class="fa-solid fa-trash"></i></button>` : '';
-                    return `
-                        <tr>
-                            <td>${new Date(t.dataFim).toLocaleDateString('pt-BR')}</td>
-                            <td><strong>${t.paleteId || '-'}</strong></td>
-                            <td>${t.nf || '-'}</td>
-                            <td>${t.produto || '-'}</td>
-                            <td>${t.inspetor || '-'}</td>
-                            <td><span class="badge badge-info">${t.amostras ? t.amostras.length : 0} un</span></td>
-                            <td>${problemCount > 0 ? `<span class="badge badge-danger">${problemCount}</span>` : '<span class="badge badge-success">0</span>'}</td>
-                            <td>${formatTime(t.totalSeconds || 0)}</td>
-                            <td style="white-space:nowrap;">
-                                <button class="btn btn-outline btn-sm" onclick="viewTest('${t.id}')"><i class="fa-solid fa-eye"></i></button>
-                                <button class="btn btn-outline btn-sm" onclick="downloadPDFByTestId('${t.id}')"><i class="fa-solid fa-file-pdf"></i></button>
-                                ${deleteBtn}
-                            </td>
-                        </tr>`;
+                    const deleteBtn = isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteTest('${t.id}')"><i class="fa-solid fa-trash"></i></button>` : '';
+                    return `<tr><td>${new Date(t.dataFim).toLocaleDateString('pt-BR')}</td><td><strong>${t.paleteId || '-'}</strong></td><td>${t.nf || '-'}</td><td>${t.produto || '-'}</td><td>${t.inspetor || '-'}</td><td><span class="badge badge-info">${t.amostras ? t.amostras.length : 0} un</span></td><td>${problemCount > 0 ? `<span class="badge badge-danger">${problemCount}</span>` : '<span class="badge badge-success">0</span>'}</td><td>${formatTime(t.totalSeconds || 0)}</td><td style="white-space:nowrap;"><button class="btn btn-outline btn-sm" onclick="viewTest('${t.id}')"><i class="fa-solid fa-eye"></i></button><button class="btn btn-outline btn-sm" onclick="downloadPDFByTestId('${t.id}')"><i class="fa-solid fa-file-pdf"></i></button>${deleteBtn}</td></tr>`;
                 }).join('');
             }
         }
 
-        function formatTime(seconds) {
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = seconds % 60;
-            if (h > 0) return `${h}h ${m}m ${s}s`;
-            if (m > 0) return `${m}m ${s}s`;
-            return `${s}s`;
-        }
-
-        // ==================== DELETE TEST (ADMIN ONLY) ====================
         async function deleteTest(testId) {
             const user = getLoggedUser();
-            if (!user || user.role !== 'admin') {
-                showToast('Apenas administradores podem excluir testes.', 'error');
-                return;
-            }
-            const testToDelete = allTests.find(t => t.id === testId);
-            if (!testToDelete) {
-                showToast('Teste não encontrado.', 'error');
-                return;
-            }
-            const desc = `ID: ${testToDelete.id}\nPalete: ${testToDelete.paleteId || '-'}\nNF: ${testToDelete.nf || '-'}\nProduto: ${testToDelete.produto || '-'}\nData: ${new Date(testToDelete.dataFim).toLocaleString('pt-BR')}`;
-            if (!confirm(`⚠️ Tem certeza que deseja EXCLUIR permanentemente este teste?\n\n${desc}\n\nEsta ação não pode ser desfeita!`)) {
-                return;
-            }
+            if (!user || user.role !== 'admin') { showToast('Apenas administradores podem excluir testes.', 'error'); return; }
+            if (!confirm('⚠️ Tem certeza que deseja EXCLUIR permanentemente este teste?')) return;
             try {
                 await testsCollection.doc(testId).delete();
                 allTests = allTests.filter(t => t.id !== testId);
                 updateDashboard();
                 applyHistoryFilters();
                 showToast('Teste excluído com sucesso!', 'info');
-            } catch (error) {
-                console.error("Erro ao excluir teste:", error);
-                showToast('Erro ao excluir teste. Tente novamente.', 'error');
-            }
+            } catch (error) { showToast('Erro ao excluir teste.', 'error'); }
         }
 
         // ==================== TEST VIEW ====================
-        let timerInterval = null;
-        let testStartTime = null;
-        let bipDebounceTimer = null;
-
         function updateTestView() {
             const ct = getCurrentTest();
             const notStarted = document.getElementById('test-not-started');
             const inProgress = document.getElementById('test-in-progress');
-
             if (ct && ct.status === 'in_progress') {
                 notStarted.style.display = 'none';
                 inProgress.style.display = 'block';
@@ -1762,9 +590,7 @@
         }
 
         function startNewTest() {
-            if (getCurrentTest() && getCurrentTest().status === 'in_progress') {
-                if (!confirm('Já existe um teste em andamento. Deseja descartá-lo e iniciar um novo?')) return;
-            }
+            if (getCurrentTest() && getCurrentTest().status === 'in_progress' && !confirm('Já existe um teste em andamento. Deseja descartá-lo e iniciar um novo?')) return;
             const user = getLoggedUser();
             const newTest = {
                 id: 'TEST-' + Date.now(),
@@ -1786,15 +612,14 @@
             startTimer();
             updateTestView();
             document.getElementById('bip-input').focus();
-            showToast('Novo teste iniciado! Comece a bipar.', 'success');
+            showToast('Novo teste iniciado!', 'success');
         }
 
         function startTimer() {
             stopTimer();
             const ct = getCurrentTest();
             if (!ct) return;
-            const startFrom = Date.now() - (ct.totalSeconds || 0) * 1000;
-            testStartTime = startFrom;
+            testStartTime = Date.now() - (ct.totalSeconds || 0) * 1000;
             timerInterval = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - testStartTime) / 1000);
                 const ctNow = getCurrentTest();
@@ -1805,7 +630,6 @@
                 }
             }, 500);
         }
-
         function startTimerFromExisting() {
             const ct = getCurrentTest();
             if (!ct || ct.status !== 'in_progress') return;
@@ -1820,65 +644,28 @@
                 }
             }, 500);
         }
-
-        function stopTimer() {
-            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-            testStartTime = null;
-        }
-
-        function formatTimerDisplay(seconds) {
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = seconds % 60;
-            return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-        }
-
-        // ==================== BIP AUTO DETECT (DEBOUNCE) ====================
+        function stopTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } testStartTime = null; }
         function setupBipAutoDetect() {
             const input = document.getElementById('bip-input');
             if (!input) return;
             input.removeEventListener('input', handleBipInput);
             input.addEventListener('input', handleBipInput);
         }
-
         function handleBipInput() {
             clearBipDebounce();
-            const input = document.getElementById('bip-input');
-            const codigo = input.value.trim();
+            const codigo = document.getElementById('bip-input').value.trim();
             if (codigo === '') return;
-            bipDebounceTimer = setTimeout(() => {
-                bipProduct();
-            }, 800);
+            bipDebounceTimer = setTimeout(() => bipProduct(), 800);
         }
-
-        function clearBipDebounce() {
-            if (bipDebounceTimer) {
-                clearTimeout(bipDebounceTimer);
-                bipDebounceTimer = null;
-            }
-        }
-
+        function clearBipDebounce() { if (bipDebounceTimer) { clearTimeout(bipDebounceTimer); bipDebounceTimer = null; } }
         function bipProduct() {
             clearBipDebounce();
             const ct = getCurrentTest();
-            if (!ct || ct.status !== 'in_progress') {
-                showToast('Nenhum teste em andamento.', 'error');
-                return;
-            }
+            if (!ct || ct.status !== 'in_progress') { showToast('Nenhum teste em andamento.', 'error'); return; }
             const input = document.getElementById('bip-input');
             const codigo = input.value.trim();
-            if (!codigo) {
-                showToast('Digite ou escaneie o código do lote antes de bipar.', 'warning');
-                input.focus();
-                return;
-            }
-            const amostra = {
-                num: (ct.amostras.length + 1),
-                codigo: codigo,
-                timestamp: new Date().toISOString(),
-                status: 'normal'
-            };
-            ct.amostras.push(amostra);
+            if (!codigo) { showToast('Digite ou escaneie o código do lote.', 'warning'); input.focus(); return; }
+            ct.amostras.push({ num: ct.amostras.length + 1, codigo: codigo, timestamp: new Date().toISOString(), status: 'normal' });
             ct.totalSeconds = Math.floor((Date.now() - testStartTime) / 1000);
             setCurrentTest(ct);
             input.value = '';
@@ -1890,115 +677,66 @@
             const bipArea = document.getElementById('bip-area');
             bipArea.classList.add('flash');
             setTimeout(() => bipArea.classList.remove('flash'), 500);
-            const counter = document.getElementById('bip-counter');
-            counter.classList.add('pulse');
-            setTimeout(() => counter.classList.remove('pulse'), 300);
+            document.getElementById('bip-counter').classList.add('pulse');
+            setTimeout(() => document.getElementById('bip-counter').classList.remove('pulse'), 300);
         }
-
-        document.getElementById('bip-input').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                clearBipDebounce();
-                bipProduct();
-            }
-        });
-
         function undoLastBip() {
             const ct = getCurrentTest();
-            if (!ct || !ct.amostras || ct.amostras.length === 0) {
-                showToast('Nenhuma amostragem para desfazer.', 'info');
-                return;
-            }
-            const removed = ct.amostras.pop();
+            if (!ct || !ct.amostras || ct.amostras.length === 0) { showToast('Nenhuma amostragem para desfazer.', 'info'); return; }
+            ct.amostras.pop();
             ct.totalSeconds = Math.floor((Date.now() - testStartTime) / 1000);
             setCurrentTest(ct);
             document.getElementById('bip-counter').textContent = ct.amostras.length;
             renderAmostrasGrid();
             updateAmostrasCount();
-            showToast(`Amostragem #${removed.num} (${removed.codigo}) desfeita.`, 'info');
+            showToast(`Última amostragem desfeita.`, 'info');
         }
-
         function cycleAmostraStatus(index) {
             const ct = getCurrentTest();
             if (!ct || !ct.amostras) return;
-            if (index >= 0 && index < ct.amostras.length) {
-                const am = ct.amostras[index];
-                const statusOrder = ['normal', 'rigoroso', 'problem'];
-                const currentIdx = statusOrder.indexOf(am.status);
-                const nextIdx = (currentIdx + 1) % statusOrder.length;
-                am.status = statusOrder[nextIdx];
+            const am = ct.amostras[index];
+            const statusOrder = ['normal', 'rigoroso', 'problem'];
+            const nextIdx = (statusOrder.indexOf(am.status) + 1) % statusOrder.length;
+            am.status = statusOrder[nextIdx];
+            ct.totalSeconds = Math.floor((Date.now() - testStartTime) / 1000);
+            setCurrentTest(ct);
+            renderAmostrasGrid();
+            updateAmostrasCount();
+        }
+        function editAmostraCodigo(index) {
+            const ct = getCurrentTest();
+            if (!ct || !ct.amostras) return;
+            const am = ct.amostras[index];
+            const novoCodigo = prompt(`Editar código do lote #${am.num}:`, am.codigo);
+            if (novoCodigo && novoCodigo.trim()) {
+                am.codigo = novoCodigo.trim();
                 ct.totalSeconds = Math.floor((Date.now() - testStartTime) / 1000);
                 setCurrentTest(ct);
                 renderAmostrasGrid();
                 updateAmostrasCount();
-                const statusNames = { normal: 'Normal ✅', rigoroso: 'Testado Rigorosamente ⭐', problem: 'COM PROBLEMA ⚠️' };
-                showToast(`Lote #${am.num} (${am.codigo}): ${statusNames[am.status]}`, am.status === 'problem' ? 'error' : (am.status === 'rigoroso' ? 'info' : 'success'));
             }
         }
-
-        function editAmostraCodigo(index) {
-            const ct = getCurrentTest();
-            if (!ct || !ct.amostras) return;
-            if (index >= 0 && index < ct.amostras.length) {
-                const amostra = ct.amostras[index];
-                const novoCodigo = prompt(`Editar código do lote #${amostra.num}:`, amostra.codigo);
-                if (novoCodigo !== null && novoCodigo.trim() !== '') {
-                    amostra.codigo = novoCodigo.trim();
-                    ct.totalSeconds = Math.floor((Date.now() - testStartTime) / 1000);
-                    setCurrentTest(ct);
-                    renderAmostrasGrid();
-                    updateAmostrasCount();
-                    showToast(`Código do lote #${amostra.num} atualizado para: ${novoCodigo.trim()}`, 'info');
-                }
-            }
-        }
-
         function renderAmostrasGrid(containerId = 'amostras-grid', amostras = null, readonly = false) {
             const grid = document.getElementById(containerId);
             const data = amostras || (getCurrentTest() ? getCurrentTest().amostras : []);
-            if (!data || data.length === 0) {
-                grid.innerHTML = '<p style="color:var(--text-light);width:100%;text-align:center;padding:20px;">Nenhuma amostragem registrada.</p>';
-                return;
-            }
-            grid.innerHTML = data.map((a, i) => {
-                let statusIcon = '';
-                if (a.status === 'problem') statusIcon = '<span class="status-icon"><i class="fa-solid fa-exclamation"></i></span>';
-                else if (a.status === 'rigoroso') statusIcon = '<span class="status-icon"><i class="fa-solid fa-star"></i></span>';
-                const clickAttr = readonly ? '' : `onclick="cycleAmostraStatus(${i})" ondblclick="editAmostraCodigo(${i})"`;
-                const readonlyClass = readonly ? ' readonly' : '';
-                return `
-                    <div class="amostra-item ${a.status}${readonlyClass}" ${clickAttr} title="Lote: ${a.codigo}">
-                        <span class="amostra-num">#${a.num}</span>
-                        <span class="amostra-codigo">${a.codigo}</span>
-                        ${statusIcon}
-                        ${!readonly ? '<span class="edit-icon"><i class="fa-solid fa-pencil"></i></span>' : ''}
-                    </div>
-                `;
-            }).join('');
-            grid.scrollTop = grid.scrollHeight;
+            if (!data.length) { grid.innerHTML = '<p style="color:var(--text-light);width:100%;text-align:center;padding:20px;">Nenhuma amostragem registrada.</p>'; return; }
+            grid.innerHTML = data.map((a, i) => `<div class="amostra-item ${a.status}${readonly ? ' readonly' : ''}" ${!readonly ? `onclick="cycleAmostraStatus(${i})" ondblclick="editAmostraCodigo(${i})"` : ''} title="Lote: ${a.codigo}"><span class="amostra-num">#${a.num}</span><span class="amostra-codigo">${a.codigo}</span>${a.status === 'problem' ? '<span class="status-icon"><i class="fa-solid fa-exclamation"></i></span>' : (a.status === 'rigoroso' ? '<span class="status-icon"><i class="fa-solid fa-star"></i></span>' : '')}${!readonly ? '<span class="edit-icon"><i class="fa-solid fa-pencil"></i></span>' : ''}</div>`).join('');
         }
-
         function updateAmostrasCount() {
             const ct = getCurrentTest();
-            const total = ct && ct.amostras ? ct.amostras.length : 0;
-            const problems = ct && ct.amostras ? ct.amostras.filter(a => a.status === 'problem').length : 0;
-            const rigoroso = ct && ct.amostras ? ct.amostras.filter(a => a.status === 'rigoroso').length : 0;
+            const total = ct?.amostras?.length || 0;
+            const problems = ct?.amostras?.filter(a => a.status === 'problem').length || 0;
+            const rigoroso = ct?.amostras?.filter(a => a.status === 'rigoroso').length || 0;
             document.getElementById('amostras-count').textContent = total;
             document.getElementById('amostras-problem-count').textContent = problems;
             document.getElementById('amostras-rigoroso-count').textContent = rigoroso;
         }
 
-        // ==================== FINALIZE TEST ====================
+        // ==================== FINALIZAR TESTE ====================
         function openFinalizeModal() {
             const ct = getCurrentTest();
-            if (!ct || !ct.amostras || ct.amostras.length === 0) {
-                showToast('É necessário ter pelo menos uma amostragem para finalizar.', 'error');
-                return;
-            }
-            const total = ct.amostras.length;
-            const problems = ct.amostras.filter(a => a.status === 'problem').length;
-            const rigoroso = ct.amostras.filter(a => a.status === 'rigoroso').length;
-            document.getElementById('final-resumo').textContent = `Amostragens: ${total} | Rigoroso: ${rigoroso} | Com problema: ${problems} | Tempo: ${formatTimerDisplay(ct.totalSeconds || 0)}`;
+            if (!ct || !ct.amostras?.length) { showToast('É necessário ter pelo menos uma amostragem para finalizar.', 'error'); return; }
+            document.getElementById('final-resumo').innerHTML = `Amostragens: ${ct.amostras.length} | Rigoroso: ${ct.amostras.filter(a => a.status === 'rigoroso').length} | Com problema: ${ct.amostras.filter(a => a.status === 'problem').length} | Tempo: ${formatTimerDisplay(ct.totalSeconds || 0)}`;
             document.getElementById('final-palete').value = '';
             document.getElementById('final-nf').value = '';
             document.getElementById('final-produto').value = '';
@@ -2007,33 +745,18 @@
             document.getElementById('modal-finalize-overlay').classList.add('active');
             initSignatureCanvas();
         }
-
-        function closeFinalizeModal() {
-            document.getElementById('modal-finalize-overlay').classList.remove('active');
-        }
-
+        function closeFinalizeModal() { document.getElementById('modal-finalize-overlay').classList.remove('active'); }
         async function finalizeAndSaveTest() {
             const ct = getCurrentTest();
             if (!ct) return;
-
             const paleteId = document.getElementById('final-palete').value.trim();
             const nf = document.getElementById('final-nf').value.trim();
             const produto = document.getElementById('final-produto').value.trim();
             const titulo = document.getElementById('final-titulo').value.trim();
-
-            if (!paleteId || !nf || !produto) {
-                showToast('Preencha Palete, Nota Fiscal e Produto.', 'error');
-                return;
-            }
-
+            if (!paleteId || !nf || !produto) { showToast('Preencha Palete, Nota Fiscal e Produto.', 'error'); return; }
             const canvas = document.getElementById('signature-canvas');
             const assinatura = canvas.toDataURL('image/png');
-
-            if (!assinatura || assinatura === 'data:,' || isCanvasBlank(canvas)) {
-                showToast('Por favor, desenhe sua assinatura eletrônica.', 'error');
-                return;
-            }
-
+            if (!assinatura || assinatura === 'data:,' || isCanvasBlank(canvas)) { showToast('Por favor, desenhe sua assinatura eletrônica.', 'error'); return; }
             ct.status = 'completed';
             ct.dataFim = new Date().toISOString();
             ct.paleteId = paleteId;
@@ -2042,12 +765,9 @@
             ct.titulo = titulo || `Inspeção - ${produto}`;
             ct.assinatura = assinatura;
             ct.totalSeconds = Math.floor((Date.now() - testStartTime) / 1000);
-
             try {
-                // Salva no Firestore
                 await testsCollection.doc(ct.id).set(ct);
-                // Atualiza array local
-                allTests.unshift(ct); // insere no início (mais recente)
+                allTests.unshift(ct);
                 setCurrentTest(null);
                 stopTimer();
                 clearBipDebounce();
@@ -2055,22 +775,9 @@
                 updateTestView();
                 showToast('Teste finalizado e salvo no Firebase!', 'success');
                 generatePDF(ct);
-            } catch (error) {
-                console.error("Erro ao salvar teste:", error);
-                showToast('Erro ao salvar teste no banco de dados.', 'error');
-            }
+            } catch (error) { showToast('Erro ao salvar teste no banco de dados.', 'error'); }
         }
-
-        function isCanvasBlank(canvas) {
-            const ctx = canvas.getContext('2d');
-            const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-            for (let i = 0; i < pixelData.length; i += 4) {
-                if (pixelData[i + 3] !== 0) return false;
-            }
-            return true;
-        }
-
-        // ==================== SIGNATURE CANVAS ====================
+        function isCanvasBlank(canvas) { const ctx = canvas.getContext('2d'); const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height).data; for (let i = 0; i < pixelData.length; i += 4) if (pixelData[i+3] !== 0) return false; return true; }
         function initSignatureCanvas() {
             const canvas = document.getElementById('signature-canvas');
             const ctx = canvas.getContext('2d');
@@ -2079,423 +786,136 @@
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.strokeStyle = '#0d1b2a';
             ctx.lineWidth = 3;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            let drawing = false;
-            let lastX, lastY;
-
-            function getPos(e) {
-                const rect = canvas.getBoundingClientRect();
-                const scaleX = canvas.width / rect.width;
-                const scaleY = canvas.height / rect.height;
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return {
-                    x: (clientX - rect.left) * scaleX,
-                    y: (clientY - rect.top) * scaleY
-                };
-            }
-
-            function startDraw(e) {
-                e.preventDefault();
-                drawing = true;
-                const pos = getPos(e);
-                lastX = pos.x;
-                lastY = pos.y;
-                ctx.beginPath();
-                ctx.moveTo(lastX, lastY);
-            }
-
-            function draw(e) {
-                if (!drawing) return;
-                e.preventDefault();
-                const pos = getPos(e);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
-                lastX = pos.x;
-                lastY = pos.y;
-            }
-
-            function endDraw() {
-                drawing = false;
-            }
-
-            canvas.addEventListener('mousedown', startDraw);
-            canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', endDraw);
-            canvas.addEventListener('mouseleave', endDraw);
-            canvas.addEventListener('touchstart', startDraw, { passive: false });
-            canvas.addEventListener('touchmove', draw, { passive: false });
-            canvas.addEventListener('touchend', endDraw);
+            let drawing = false, lastX, lastY;
+            function getPos(e) { const rect = canvas.getBoundingClientRect(); const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height; const clientX = e.touches ? e.touches[0].clientX : e.clientX; const clientY = e.touches ? e.touches[0].clientY : e.clientY; return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY }; }
+            function start(e) { e.preventDefault(); drawing = true; const pos = getPos(e); lastX = pos.x; lastY = pos.y; ctx.beginPath(); ctx.moveTo(lastX, lastY); }
+            function draw(e) { if (!drawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); lastX = pos.x; lastY = pos.y; }
+            function end() { drawing = false; }
+            canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', end); canvas.addEventListener('mouseleave', end); canvas.addEventListener('touchstart', start, { passive: false }); canvas.addEventListener('touchmove', draw, { passive: false }); canvas.addEventListener('touchend', end);
         }
+        function clearSignature() { const canvas = document.getElementById('signature-canvas'); const ctx = canvas.getContext('2d'); ctx.fillStyle = '#fafbfc'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
 
-        function clearSignature() {
-            const canvas = document.getElementById('signature-canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#fafbfc';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        // ==================== PDF GENERATION ====================
+        // ==================== PDF ====================
         function generatePDF(test) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
             const pageWidth = doc.internal.pageSize.getWidth();
             const margin = 20;
             let y = margin;
-
-            doc.setFillColor(13, 27, 42);
-            doc.rect(0, 0, pageWidth, 35, 'F');
-            doc.setFillColor(201, 168, 76);
-            doc.rect(0, 35, pageWidth, 3, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(22);
-            doc.text('DIMEP SISTEMAS', pageWidth / 2, 18, { align: 'center' });
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.text('Relatório de Inspeção de Qualidade', pageWidth / 2, 27, { align: 'center' });
-            y = 44;
-            doc.setTextColor(13, 27, 42);
-            doc.setFontSize(16);
-            doc.setFont('helvetica', 'bold');
-            doc.text(test.titulo || 'Relatório de Teste', margin, y);
-            y += 8;
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(100, 100, 100);
-            const dataFim = new Date(test.dataFim);
-            doc.text(`Data de Finalização: ${dataFim.toLocaleDateString('pt-BR')} às ${dataFim.toLocaleTimeString('pt-BR')}`, margin, y);
-            y += 5;
-            const dataInicio = new Date(test.dataInicio);
-            doc.text(`Início: ${dataInicio.toLocaleDateString('pt-BR')} às ${dataInicio.toLocaleTimeString('pt-BR')} | Término: ${dataFim.toLocaleTimeString('pt-BR')}`, margin, y);
-            y += 8;
-            doc.setDrawColor(200, 200, 200);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 8;
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(11);
-            doc.setTextColor(13, 27, 42);
-            doc.text('DADOS DA INSPEÇÃO', margin, y);
-            y += 7;
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(10);
-            const infoLines = [
-                { label: 'Palete:', value: test.paleteId },
-                { label: 'Nota Fiscal:', value: test.nf },
-                { label: 'Produto:', value: test.produto },
-                { label: 'Inspetor:', value: test.inspetor },
-                { label: 'Total de Amostragens:', value: String(test.amostras ? test.amostras.length : 0) },
-                { label: 'Tempo Total:', value: formatTime(test.totalSeconds || 0) },
-                { label: 'Lotes Rigorosos:', value: String(test.amostras ? test.amostras.filter(a => a.status === 'rigoroso').length : 0) },
-                { label: 'Lotes com Problema:', value: String(test.amostras ? test.amostras.filter(a => a.status === 'problem').length : 0) }
-            ];
-            infoLines.forEach(line => {
-                doc.setFont('helvetica', 'bold');
-                doc.text(line.label, margin, y);
-                doc.setFont('helvetica', 'normal');
-                if (line.label === 'Lotes com Problema:' && parseInt(line.value) > 0) doc.setTextColor(220, 38, 38);
-                else if (line.label === 'Lotes Rigorosos:' && parseInt(line.value) > 0) doc.setTextColor(30, 41, 59);
-                else doc.setTextColor(60, 60, 60);
-                doc.text(line.value, margin + 50, y);
-                y += 6;
+            doc.setFillColor(13, 27, 42); doc.rect(0, 0, pageWidth, 35, 'F'); doc.setFillColor(201, 168, 76); doc.rect(0, 35, pageWidth, 3, 'F');
+            doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.text('DIMEP SISTEMAS', pageWidth/2, 18, { align: 'center' });
+            doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.text('Relatório de Inspeção de Qualidade', pageWidth/2, 27, { align: 'center' });
+            y = 44; doc.setTextColor(13,27,42); doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.text(test.titulo || 'Relatório de Teste', margin, y); y+=8;
+            doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(100,100,100);
+            doc.text(`Data de Finalização: ${new Date(test.dataFim).toLocaleString('pt-BR')}`, margin, y); y+=5;
+            doc.text(`Início: ${new Date(test.dataInicio).toLocaleString('pt-BR')} | Duração: ${formatTime(test.totalSeconds)}`, margin, y); y+=8;
+            doc.line(margin, y, pageWidth-margin, y); y+=8;
+            doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(13,27,42); doc.text('DADOS DA INSPEÇÃO', margin, y); y+=7;
+            doc.setFont('helvetica','normal'); doc.setFontSize(10);
+            const info = [`Palete: ${test.paleteId}`, `Nota Fiscal: ${test.nf}`, `Produto: ${test.produto}`, `Inspetor: ${test.inspetor}`, `Total de Amostragens: ${test.amostras?.length || 0}`, `Tempo Total: ${formatTime(test.totalSeconds || 0)}`, `Lotes Rigorosos: ${test.amostras?.filter(a=>a.status==='rigoroso').length || 0}`, `Lotes com Problema: ${test.amostras?.filter(a=>a.status==='problem').length || 0}`];
+            info.forEach(line => { doc.text(line, margin, y); y+=6; });
+            y+=4; doc.line(margin, y, pageWidth-margin, y); y+=10;
+            doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.text('REGISTRO DE AMOSTRAGENS', margin, y); y+=8;
+            const cols = [margin, margin+15, margin+55, margin+100, margin+140];
+            doc.setFillColor(13,27,42); doc.rect(margin, y-5, pageWidth-2*margin, 8, 'F'); doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold');
+            doc.text('#', cols[0], y); doc.text('Código do Lote', cols[1], y); doc.text('Horário', cols[2], y); doc.text('Status', cols[3], y); doc.text('Observação', cols[4], y); y+=6;
+            if (test.amostras) test.amostras.forEach((am, i) => {
+                if (y > 250) { doc.addPage(); y=20; }
+                let rowBg, textColor, statusText, obsText;
+                if (am.status === 'problem') { rowBg = [254,242,242]; textColor = [185,28,28]; statusText = 'COM PROBLEMA'; obsText = 'Lote identificado com irregularidade'; }
+                else if (am.status === 'rigoroso') { rowBg = [30,41,59]; textColor = [241,245,249]; statusText = 'TESTE RIGOROSO'; obsText = 'Lote submetido a testes rigorosos'; }
+                else { rowBg = (i%2===0)?[248,250,252]:[255,255,255]; textColor = [13,27,42]; statusText = 'NORMAL'; obsText = 'Aprovado nos testes padrão'; }
+                doc.setFillColor(rowBg[0],rowBg[1],rowBg[2]); doc.rect(margin, y-4, pageWidth-2*margin, 7, 'F');
+                doc.setTextColor(textColor[0],textColor[1],textColor[2]); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+                doc.text(String(am.num), cols[0], y); doc.text(am.codigo, cols[1], y); doc.setFont('helvetica','normal');
+                doc.text(new Date(am.timestamp).toLocaleTimeString('pt-BR'), cols[2], y); doc.setFont('helvetica','bold'); doc.text(statusText, cols[3], y);
+                doc.setFont('helvetica','normal'); doc.text(obsText, cols[4], y); y+=7;
             });
-            y += 4;
-            doc.setDrawColor(200, 200, 200);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 10;
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(12);
-            doc.setTextColor(13, 27, 42);
-            doc.text('REGISTRO DE AMOSTRAGENS', margin, y);
-            y += 8;
-            const colX = [margin, margin + 15, margin + 55, margin + 100, margin + 140];
-            doc.setFillColor(13, 27, 42);
-            doc.rect(margin, y - 5, pageWidth - 2 * margin, 8, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(8);
-            doc.setFont('helvetica', 'bold');
-            doc.text('#', colX[0], y);
-            doc.text('Código do Lote', colX[1], y);
-            doc.text('Horário', colX[2], y);
-            doc.text('Status', colX[3], y);
-            doc.text('Observação', colX[4], y);
-            y += 6;
-            if (test.amostras && test.amostras.length > 0) {
-                test.amostras.forEach((am, i) => {
-                    if (y > 250) { doc.addPage(); y = 20; }
-                    let rowBg, textColor, statusText, obsText;
-                    if (am.status === 'problem') {
-                        rowBg = [254, 242, 242]; textColor = [185, 28, 28]; statusText = 'COM PROBLEMA'; obsText = 'Lote identificado com irregularidade';
-                    } else if (am.status === 'rigoroso') {
-                        rowBg = [30, 41, 59]; textColor = [241, 245, 249]; statusText = 'TESTE RIGOROSO'; obsText = 'Lote submetido a testes rigorosos';
-                    } else {
-                        rowBg = (i % 2 === 0) ? [248, 250, 252] : [255, 255, 255]; textColor = [13, 27, 42]; statusText = 'NORMAL'; obsText = 'Aprovado nos testes padrão';
-                    }
-                    doc.setFillColor(rowBg[0], rowBg[1], rowBg[2]);
-                    doc.rect(margin, y - 4, pageWidth - 2 * margin, 7, 'F');
-                    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setFontSize(8);
-                    doc.text(String(am.num), colX[0], y);
-                    doc.text(am.codigo, colX[1], y);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(new Date(am.timestamp).toLocaleTimeString('pt-BR'), colX[2], y);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text(statusText, colX[3], y);
-                    doc.setFont('helvetica', 'normal');
-                    doc.text(obsText, colX[4], y);
-                    y += 7;
-                });
-            }
-            y += 6;
-            doc.setDrawColor(200, 200, 200);
-            doc.line(margin, y, pageWidth - margin, y);
-            y += 10;
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(11);
-            doc.setTextColor(13, 27, 42);
-            doc.text('OBSERVAÇÃO IMPORTANTE:', margin, y);
-            y += 6;
-            doc.setFontSize(10);
-            doc.text('Todos os lotes acima relacionados foram submetidos a testes rigorosos de qualidade,', margin, y);
-            y += 5;
-            doc.text('conforme procedimentos padrão DIMEP SISTEMAS. Os lotes destacados em vermelho', margin, y);
-            y += 5;
-            doc.text('apresentaram irregularidades. Os lotes em destaque escuro foram testados rigorosamente.', margin, y);
-            y += 12;
-            if (test.assinatura) {
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(11);
-                doc.setTextColor(13, 27, 42);
-                doc.text('ASSINATURA ELETRÔNICA DO INSPETOR:', margin, y);
-                y += 5;
-                try {
-                    doc.addImage(test.assinatura, 'PNG', margin, y, 70, 25);
-                } catch (e) {
-                    doc.setFont('helvetica', 'italic');
-                    doc.setFontSize(9);
-                    doc.text('(Assinatura eletrônica registrada digitalmente)', margin, y + 10);
-                }
-                y += 30;
-                doc.setFont('helvetica', 'bold');
-                doc.setFontSize(11);
-                doc.text(test.inspetor, margin, y);
-                y += 5;
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(9);
-                doc.setTextColor(100, 100, 100);
-                doc.text('Inspetor de Qualidade - DIMEP SISTEMAS', margin, y);
-            }
-            doc.setFillColor(13, 27, 42);
-            doc.rect(0, 285, pageWidth, 12, 'F');
-            doc.setTextColor(255, 255, 255);
-            doc.setFontSize(7);
-            doc.setFont('helvetica', 'normal');
-            doc.text('DIMEP SISTEMAS - Documento gerado digitalmente - www.dimep.com.br', pageWidth / 2, 292, { align: 'center' });
-            const fileName = `DIMEP_${test.paleteId}_${test.nf}_${new Date(test.dataFim).toISOString().slice(0,10)}.pdf`;
-            doc.save(fileName);
+            y+=10; doc.setDrawColor(200,200,200); doc.line(margin, y, pageWidth-margin, y); y+=10;
+            doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(13,27,42); doc.text('OBSERVAÇÃO IMPORTANTE:', margin, y); y+=6;
+            doc.setFontSize(10); doc.text('Todos os lotes acima relacionados foram submetidos a testes rigorosos de qualidade,', margin, y); y+=5;
+            doc.text('conforme procedimentos padrão DIMEP SISTEMAS.', margin, y); y+=12;
+            if (test.assinatura) { doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text('ASSINATURA ELETRÔNICA DO INSPETOR:', margin, y); y+=5; try { doc.addImage(test.assinatura, 'PNG', margin, y, 70, 25); } catch(e) { doc.text('(Assinatura registrada digitalmente)', margin, y+10); } y+=30; doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text(test.inspetor, margin, y); y+=5; doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(100,100,100); doc.text('Inspetor de Qualidade - DIMEP SISTEMAS', margin, y); }
+            doc.setFillColor(13,27,42); doc.rect(0, 285, pageWidth, 12, 'F'); doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.text('DIMEP SISTEMAS - Documento gerado digitalmente - www.dimep.com.br', pageWidth/2, 292, { align: 'center' });
+            doc.save(`DIMEP_${test.paleteId}_${test.nf}_${new Date(test.dataFim).toISOString().slice(0,10)}.pdf`);
         }
+        function downloadPDFByTestId(testId) { const test = allTests.find(t => t.id === testId); if (test) generatePDF(test); else showToast('Teste não encontrado.', 'error'); }
 
-        function downloadPDFByTestId(testId) {
-            const test = allTests.find(t => t.id === testId);
-            if (!test) {
-                showToast('Teste não encontrado.', 'error');
-                return;
-            }
-            generatePDF(test);
-        }
-
-        // ==================== HISTORY WITH FILTERS ====================
+        // ==================== HISTORY FILTERS ====================
         function getFilteredTests() {
-            const searchTerm = (document.getElementById('filter-search')?.value || '').trim().toLowerCase();
-            const nfTerm = (document.getElementById('filter-nf')?.value || '').trim().toLowerCase();
-            const dateFrom = document.getElementById('filter-date-from')?.value || '';
-            const dateTo = document.getElementById('filter-date-to')?.value || '';
-            const statusFilter = document.getElementById('filter-status')?.value || 'all';
-            return allTests.filter(test => {
-                if (searchTerm) {
-                    const searchable = [test.produto || '', test.inspetor || '', test.paleteId || '', test.titulo || '', test.id || '', test.inspetorUsername || ''].join(' ').toLowerCase();
-                    if (!searchable.includes(searchTerm)) return false;
-                }
-                if (nfTerm) {
-                    if (!(test.nf || '').toLowerCase().includes(nfTerm)) return false;
-                }
-                if (dateFrom || dateTo) {
-                    const testDate = new Date(test.dataFim);
-                    testDate.setHours(0, 0, 0, 0);
-                    if (dateFrom && testDate < new Date(dateFrom + 'T00:00:00')) return false;
-                    if (dateTo && testDate > new Date(dateTo + 'T23:59:59')) return false;
-                }
-                if (statusFilter === 'approved' && test.amostras?.some(a => a.status === 'problem')) return false;
-                if (statusFilter === 'problem' && !test.amostras?.some(a => a.status === 'problem')) return false;
-                if (statusFilter === 'rigoroso' && !test.amostras?.some(a => a.status === 'rigoroso')) return false;
+            const search = (document.getElementById('filter-search')?.value || '').toLowerCase();
+            const nf = (document.getElementById('filter-nf')?.value || '').toLowerCase();
+            const from = document.getElementById('filter-date-from')?.value, to = document.getElementById('filter-date-to')?.value;
+            const status = document.getElementById('filter-status')?.value || 'all';
+            return allTests.filter(t => {
+                if (search && ![t.produto, t.inspetor, t.paleteId, t.id, t.inspetorUsername].some(f => (f||'').toLowerCase().includes(search))) return false;
+                if (nf && !(t.nf||'').toLowerCase().includes(nf)) return false;
+                const d = new Date(t.dataFim); d.setHours(0,0,0,0);
+                if (from && d < new Date(from+'T00:00:00')) return false;
+                if (to && d > new Date(to+'T23:59:59')) return false;
+                if (status === 'approved' && t.amostras?.some(a=>a.status==='problem')) return false;
+                if (status === 'problem' && !t.amostras?.some(a=>a.status==='problem')) return false;
+                if (status === 'rigoroso' && !t.amostras?.some(a=>a.status==='rigoroso')) return false;
                 return true;
             });
         }
-
         function applyHistoryFilters() {
-            const filteredTests = getFilteredTests();
+            const filtered = getFilteredTests();
             const tbody = document.getElementById('history-table');
             const user = getLoggedUser();
             const isAdmin = user && user.role === 'admin';
-            const resultCountEl = document.getElementById('filter-result-count');
-            if (filteredTests.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text-light);padding:30px;">Nenhum teste encontrado com os filtros aplicados.</td></tr>';
-                resultCountEl.innerHTML = 'Nenhum resultado encontrado.';
-            } else {
-                resultCountEl.innerHTML = `<strong>${filteredTests.length}</strong> teste(s) encontrado(s) de <strong>${allTests.length}</strong> total(is).`;
-                tbody.innerHTML = filteredTests.map(t => {
-                    const problemCount = t.amostras ? t.amostras.filter(a => a.status === 'problem').length : 0;
-                    const deleteBtn = isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteTest('${t.id}')" title="Excluir teste"><i class="fa-solid fa-trash"></i></button>` : '';
-                    return `
-                        <tr>
-                            <td><small>${t.id}</small></td>
-                            <td>${new Date(t.dataFim).toLocaleDateString('pt-BR')}</td>
-                            <td><strong>${t.paleteId || '-'}</strong></td>
-                            <td>${t.nf || '-'}</td>
-                            <td>${t.produto || '-'}</td>
-                            <td>${t.inspetor || '-'}</td>
-                            <td><span class="badge badge-info">${t.amostras ? t.amostras.length : 0}</span></td>
-                            <td>${problemCount > 0 ? `<span class="badge badge-danger">${problemCount}</span>` : '<span class="badge badge-success">0</span>'}</td>
-                            <td>${formatTime(t.totalSeconds || 0)}</td>
-                            <td style="white-space:nowrap;">
-                                <button class="btn btn-outline btn-sm" onclick="viewTest('${t.id}')"><i class="fa-solid fa-eye"></i></button>
-                                <button class="btn btn-outline btn-sm" onclick="downloadPDFByTestId('${t.id}')"><i class="fa-solid fa-file-pdf"></i></button>
-                                ${deleteBtn}
-                            </td>
-                        </tr>`;
-                }).join('');
-            }
+            document.getElementById('filter-result-count').innerHTML = filtered.length ? `<strong>${filtered.length}</strong> teste(s) encontrado(s) de <strong>${allTests.length}</strong> total(is).` : 'Nenhum resultado encontrado.';
+            if (!filtered.length) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--text-light);padding:30px;">Nenhum teste encontrado.</td></tr>';
+            else tbody.innerHTML = filtered.map(t => `<tr><td><small>${t.id}</small></td><td>${new Date(t.dataFim).toLocaleDateString('pt-BR')}</td><td><strong>${t.paleteId||'-'}</strong></td><td>${t.nf||'-'}</td><td>${t.produto||'-'}</td><td>${t.inspetor||'-'}</td><td><span class="badge badge-info">${t.amostras?.length||0}</span></td><td>${t.amostras?.some(a=>a.status==='problem') ? `<span class="badge badge-danger">${t.amostras.filter(a=>a.status==='problem').length}</span>` : '<span class="badge badge-success">0</span>'}</td><td>${formatTime(t.totalSeconds||0)}</td><td style="white-space:nowrap;"><button class="btn btn-outline btn-sm" onclick="viewTest('${t.id}')"><i class="fa-solid fa-eye"></i></button><button class="btn btn-outline btn-sm" onclick="downloadPDFByTestId('${t.id}')"><i class="fa-solid fa-file-pdf"></i></button>${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteTest('${t.id}')"><i class="fa-solid fa-trash"></i></button>` : ''}</td></tr>`).join('');
         }
-
-        function clearHistoryFilters() {
-            document.getElementById('filter-search').value = '';
-            document.getElementById('filter-nf').value = '';
-            document.getElementById('filter-date-from').value = '';
-            document.getElementById('filter-date-to').value = '';
-            document.getElementById('filter-status').value = 'all';
-            applyHistoryFilters();
-        }
-
-        // ==================== VISUALIZAR TESTE ====================
+        function clearHistoryFilters() { document.getElementById('filter-search').value = ''; document.getElementById('filter-nf').value = ''; document.getElementById('filter-date-from').value = ''; document.getElementById('filter-date-to').value = ''; document.getElementById('filter-status').value = 'all'; applyHistoryFilters(); }
         function viewTest(testId) {
             const test = allTests.find(t => t.id === testId);
-            if (!test) { showToast('Teste não encontrado.', 'error'); return; }
+            if (!test) return;
             const container = document.getElementById('view-test-details');
-            const dataFim = new Date(test.dataFim);
-            const problemCount = test.amostras ? test.amostras.filter(a => a.status === 'problem').length : 0;
-            const rigorosoCount = test.amostras ? test.amostras.filter(a => a.status === 'rigoroso').length : 0;
-            let html = `
-                <div style="background:#f8fafc; border-radius:8px; padding:16px; margin-bottom:16px;">
-                    <p><strong>Título:</strong> ${test.titulo || '-'}</p>
-                    <p><strong>Palete:</strong> ${test.paleteId || '-'} &nbsp;&nbsp; <strong>NF:</strong> ${test.nf || '-'}</p>
-                    <p><strong>Produto:</strong> ${test.produto || '-'} &nbsp;&nbsp; <strong>Inspetor:</strong> ${test.inspetor || '-'}</p>
-                    <p><strong>Data:</strong> ${dataFim.toLocaleDateString('pt-BR')} às ${dataFim.toLocaleTimeString('pt-BR')}</p>
-                    <p><strong>Duração:</strong> ${formatTime(test.totalSeconds || 0)} &nbsp;&nbsp; <strong>Amostras:</strong> ${test.amostras ? test.amostras.length : 0} (Rigoroso: ${rigorosoCount} | Problema: ${problemCount})</p>
-                </div>
-                <h4 style="margin-bottom:12px;">Amostragens:</h4>
-                <div class="amostras-grid" id="view-amostras-grid" style="max-height:300px;"></div>
-            `;
-            container.innerHTML = html;
-            if (test.amostras && test.amostras.length > 0) {
-                const gridDiv = document.getElementById('view-amostras-grid');
-                gridDiv.innerHTML = test.amostras.map(a => {
-                    let statusIcon = '';
-                    if (a.status === 'problem') statusIcon = '<span class="status-icon"><i class="fa-solid fa-exclamation"></i></span>';
-                    else if (a.status === 'rigoroso') statusIcon = '<span class="status-icon"><i class="fa-solid fa-star"></i></span>';
-                    return `<div class="amostra-item ${a.status} readonly" title="Lote: ${a.codigo}"><span class="amostra-num">#${a.num}</span><span class="amostra-codigo">${a.codigo}</span>${statusIcon}</div>`;
-                }).join('');
-            } else {
-                document.getElementById('view-amostras-grid').innerHTML = '<p style="color:var(--text-light);">Nenhuma amostra.</p>';
-            }
+            container.innerHTML = `<div style="background:#f8fafc; border-radius:8px; padding:16px; margin-bottom:16px;"><p><strong>Título:</strong> ${test.titulo||'-'}</p><p><strong>Palete:</strong> ${test.paleteId||'-'} &nbsp; <strong>NF:</strong> ${test.nf||'-'}</p><p><strong>Produto:</strong> ${test.produto||'-'} &nbsp; <strong>Inspetor:</strong> ${test.inspetor||'-'}</p><p><strong>Data:</strong> ${new Date(test.dataFim).toLocaleString('pt-BR')}</p><p><strong>Duração:</strong> ${formatTime(test.totalSeconds)} &nbsp; <strong>Amostras:</strong> ${test.amostras?.length||0}</p></div><h4 style="margin-bottom:12px;">Amostragens:</h4><div class="amostras-grid" id="view-amostras-grid" style="max-height:300px;"></div>`;
+            if (test.amostras?.length) { const grid = document.getElementById('view-amostras-grid'); grid.innerHTML = test.amostras.map(a => `<div class="amostra-item ${a.status} readonly"><span class="amostra-num">#${a.num}</span><span class="amostra-codigo">${a.codigo}</span>${a.status==='problem'?'<span class="status-icon"><i class="fa-solid fa-exclamation"></i></span>':(a.status==='rigoroso'?'<span class="status-icon"><i class="fa-solid fa-star"></i></span>':'')}</div>`).join(''); }
             document.getElementById('modal-view-test-overlay').classList.add('active');
         }
+        function closeViewTestModal() { document.getElementById('modal-view-test-overlay').classList.remove('active'); }
 
-        function closeViewTestModal() {
-            document.getElementById('modal-view-test-overlay').classList.remove('active');
-        }
-
-        // ==================== USERS MANAGEMENT ====================
+        // ==================== USERS ====================
         function updateUsersTable() {
             const user = getLoggedUser();
-            if (!user || user.role !== 'admin') {
-                document.getElementById('users-table').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-light);padding:30px;">Acesso restrito ao administrador.</td></tr>';
-                return;
-            }
-            document.getElementById('users-table').innerHTML = allUsers.map(u => `
-                <tr>
-                    <td><strong>${u.username}</strong></td>
-                    <td>${u.fullName}</td>
-                    <td><span class="badge ${u.role === 'admin' ? 'badge-warning' : 'badge-info'}">${u.role === 'admin' ? 'Administrador' : 'Inspetor'}</span></td>
-                    <td>
-                        ${u.username !== 'Admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.username}')"><i class="fa-solid fa-trash"></i> Remover</button>` : '<small style="color:var(--text-light);">Usuário padrão</small>'}
-                    </td>
-                </tr>
-            `).join('');
+            if (!user || user.role !== 'admin') { document.getElementById('users-table').innerHTML = '<tr><td colspan="4" style="text-align:center;">Acesso restrito ao administrador.</td></tr>'; return; }
+            document.getElementById('users-table').innerHTML = allUsers.map(u => `<tr><td><strong>${u.username}</strong></td><td>${u.fullName}</td><td><span class="badge ${u.role==='admin'?'badge-warning':'badge-info'}">${u.role==='admin'?'Administrador':'Inspetor'}</span></td><td>${u.username !== 'Admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteUser('${u.username}')"><i class="fa-solid fa-trash"></i> Remover</button>` : '<small style="color:var(--text-light);">Usuário padrão</small>'}</td></tr>`).join('');
         }
-
-        function openAddUserModal() {
-            document.getElementById('add-user-username').value = '';
-            document.getElementById('add-user-fullname').value = '';
-            document.getElementById('add-user-password').value = '';
-            document.getElementById('add-user-role').value = 'inspetor';
-            document.getElementById('modal-add-user-overlay').classList.add('active');
-        }
-
-        function closeAddUserModal() {
-            document.getElementById('modal-add-user-overlay').classList.remove('active');
-        }
-
+        function openAddUserModal() { document.getElementById('add-user-username').value = ''; document.getElementById('add-user-fullname').value = ''; document.getElementById('add-user-password').value = ''; document.getElementById('add-user-role').value = 'inspetor'; document.getElementById('modal-add-user-overlay').classList.add('active'); }
+        function closeAddUserModal() { document.getElementById('modal-add-user-overlay').classList.remove('active'); }
         async function addUser() {
             const username = document.getElementById('add-user-username').value.trim();
             const fullName = document.getElementById('add-user-fullname').value.trim();
             const password = document.getElementById('add-user-password').value;
             const role = document.getElementById('add-user-role').value;
-            if (!username || !fullName || !password) {
-                showToast('Preencha todos os campos.', 'error');
-                return;
-            }
-            if (password.length < 4) {
-                showToast('A senha deve ter pelo menos 4 caracteres.', 'error');
-                return;
-            }
-            if (allUsers.some(u => u.username === username)) {
-                showToast('Nome de usuário já existe.', 'error');
-                return;
-            }
+            if (!username || !fullName || !password) { showToast('Preencha todos os campos.', 'error'); return; }
+            if (password.length < 4) { showToast('A senha deve ter pelo menos 4 caracteres.', 'error'); return; }
+            if (allUsers.some(u => u.username === username)) { showToast('Nome de usuário já existe.', 'error'); return; }
             const newUser = { username, password, fullName, role };
             try {
                 await usersCollection.doc(username).set(newUser);
                 allUsers.push(newUser);
                 closeAddUserModal();
                 updateUsersTable();
-                showToast(`Usuário "${fullName}" cadastrado com sucesso!`, 'success');
-            } catch (error) {
-                console.error("Erro ao adicionar usuário:", error);
-                showToast('Erro ao salvar usuário.', 'error');
-            }
+                showToast(`Usuário "${fullName}" cadastrado!`, 'success');
+            } catch (error) { showToast('Erro ao salvar usuário.', 'error'); }
         }
-
         async function deleteUser(username) {
-            if (username === 'Admin') {
-                showToast('Não é possível remover o administrador padrão.', 'error');
-                return;
-            }
-            if (!confirm(`Tem certeza que deseja remover o usuário "${username}"?`)) return;
+            if (username === 'Admin') { showToast('Não é possível remover o administrador padrão.', 'error'); return; }
+            if (!confirm(`Remover usuário "${username}"?`)) return;
             try {
                 await usersCollection.doc(username).delete();
                 allUsers = allUsers.filter(u => u.username !== username);
                 updateUsersTable();
                 showToast(`Usuário "${username}" removido.`, 'info');
-            } catch (error) {
-                console.error("Erro ao remover usuário:", error);
-                showToast('Erro ao remover usuário.', 'error');
-            }
+            } catch (error) { showToast('Erro ao remover usuário.', 'error'); }
         }
 
-        // ==================== INITIALIZATION ====================
+        // ==================== INICIALIZAÇÃO ====================
         async function init() {
             await loadInitialData();
             if (loggedUser) {
@@ -2513,28 +933,11 @@
             }
         }
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
-                handleLogin();
-            }
-        });
-
-        // Fechar modais ao clicar no overlay
-        document.getElementById('modal-finalize-overlay').addEventListener('click', function(e) {
-            if (e.target === this) closeFinalizeModal();
-        });
-        document.getElementById('modal-add-user-overlay').addEventListener('click', function(e) {
-            if (e.target === this) closeAddUserModal();
-        });
-        document.getElementById('modal-view-test-overlay').addEventListener('click', function(e) {
-            if (e.target === this) closeViewTestModal();
-        });
-
+        document.addEventListener('keydown', e => { if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') handleLogin(); });
+        document.getElementById('modal-finalize-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeFinalizeModal(); });
+        document.getElementById('modal-add-user-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeAddUserModal(); });
+        document.getElementById('modal-view-test-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeViewTestModal(); });
         init();
-
-        console.log('✅ DIMEP SISTEMAS v2.0 (Firebase) inicializado com sucesso!');
-        console.log('🔥 Conectado ao Firestore. Admin padrão: Admin / 20362881');
-        console.log('🔍 Filtros avançados no histórico, exclusão somente para admin.');
     </script>
 </body>
-</html> 
+</html>
